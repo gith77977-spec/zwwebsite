@@ -169,8 +169,10 @@ function initializeDefaultProducts() {
         }
     });
     products = uniqueProducts;
-    if (products.length === 0) {
-        console.log('Empty products - loading defaults');
+    // Only load defaults if localStorage is null (not empty array)
+    const stored = localStorage.getItem('zonewear-products');
+    if (stored === null) {
+        console.log('No products found - loading defaults');
         const defaultProducts = [
             {
                 id: 1,
