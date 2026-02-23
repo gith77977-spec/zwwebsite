@@ -934,6 +934,7 @@
         function deleteAllProducts() {
             if (confirm('Are you sure you want to delete ALL products? This cannot be undone!')) {
                 localStorage.setItem('zonewear-products', JSON.stringify([]));
+                localStorage.setItem('zonewear-products-deleted', 'true'); // Mark as deleted
                 products = [];
                 loadInventoryTable();
                 updateDashboard();
