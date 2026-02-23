@@ -816,33 +816,61 @@
                     // Save image to IndexedDB
                     await saveImageToDb(imageBlob, imageName);
                     
+                    const price = parseInt(document.getElementById('product-price').value);
+                    const stock = parseInt(document.getElementById('product-stock').value);
+                    
+                    // Validate price and stock are valid numbers
+                    if (isNaN(price) || price < 0) {
+                        alert('Invalid price. Please enter a valid number.');
+                        return;
+                    }
+                    if (isNaN(stock) || stock < 0) {
+                        alert('Invalid stock. Please enter a valid number.');
+                        return;
+                    }
+                    
                     const product = {
                         id: editingProductId || Date.now(),
                         name: document.getElementById('product-name').value,
                         descAr: document.getElementById('product-desc-ar').value,
-                        price: parseInt(document.getElementById('product-price').value),
+                        price: price,
                         category: document.getElementById('product-category').value,
-                        stock: parseInt(document.getElementById('product-stock').value),
-                        image: imageName // Store only the image name, not the full blob
+                        stock: stock,
+                        image: imageName, // Store only the image name, not the full blob
+                        createdAt: new Date().toISOString()
                     };
 
+                    // Load existing products from localStorage
+                    let productsList = [];
+                    try {
+                        productsList = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+                    } catch (e) {
+                        productsList = [];
+                    }
+                    
                     if (editingProductId) {
                         // Update existing product
-                        const index = products.findIndex(p => p.id === editingProductId);
+                        const index = productsList.findIndex(p => p.id === editingProductId);
                         if (index !== -1) {
-                            products[index] = product;
+                            productsList[index] = product;
                         }
                     } else {
                         // Add new product
-                        products.push(product);
+                        productsList.push(product);
                     }
 
-                    localStorage.setItem('zonewear-products', JSON.stringify(products));
+                    // Save directly to localStorage
+                    localStorage.setItem('zonewear-products', JSON.stringify(productsList));
+                    
+                    console.log('Product saved:', product);
+                    console.log('All products in localStorage:', productsList);
+                    
                     loadInventoryTable();
                     closeProductModal();
                     alert(editingProductId ? 'Product updated!' : 'Product added successfully!');
                 } catch (error) {
-                    alert('Error saving image: ' + error.message);
+                    console.error('Error saving product:', error);
+                    alert('Error saving product: ' + error.message);
                 }
             };
             reader.readAsArrayBuffer(imageFile);

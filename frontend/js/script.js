@@ -272,16 +272,23 @@ function cleanProductsData() {
         return;
     }
     
-    // Remove invalid products
+    // Remove invalid products - but be less aggressive
     products = products.filter(p => {
-        return p && p.id && p.name && (p.price !== undefined && p.price !== null);
+        // Must have these core fields
+        if (!p || !p.id || !p.name) return false;
+        
+        // Price must be a valid number (not NaN)
+        if (p.price === undefined || p.price === null || isNaN(p.price)) return false;
+        
+        // It's valid
+        return true;
     });
     
-    // Save cleaned data
+    console.log('cleanProductsData - filtered products count:', products.length);
+    
+    // Save cleaned data but DON'T clear if empty - let initializeDefaultProducts handle it
     if (products.length > 0) {
         localStorage.setItem('zonewear-products', JSON.stringify(products));
-    } else {
-        localStorage.removeItem('zonewear-products');
     }
 }
 
@@ -372,36 +379,36 @@ async function loadProductsToDOM() {
     const productsGrid = document.querySelector('.products-grid');
     if (!productsGrid) return; // Not on products page
 
+    console.log('loadProductsToDOM - products count:', products.length);
+
     // Clear existing products except coming soon items
     const existingCards = document.querySelectorAll('.product-card[data-product-id]');
     existingCards.forEach(card => card.remove());
 
     // Add products from localStorage
     for (const product of products) {
-        let imageSrc = product.image;
+        let imageSrc = 'assets/images/zw-halfzip-white.png'; // Default image
         
         // If image is from IndexedDB (contains 'product-'), get it from DB
         if (product.image && product.image.startsWith('product-')) {
-            const imageUrl = await getImageFromDb(product.image);
-            if (imageUrl) {
-                imageSrc = imageUrl;
-            } else {
-                // Image not found in IndexedDB, use default
-                imageSrc = 'images/zw-halfzip-white.png';
+            try {
+                const imageUrl = await getImageFromDb(product.image);
+                if (imageUrl) {
+                    imageSrc = imageUrl;
+                }
+            } catch (error) {
+                console.error('Error loading image from DB:', product.image, error);
             }
         }
         
-        // Ensure imageSrc is valid before using
-        if (!imageSrc) {
-            imageSrc = 'images/zw-halfzip-white.png';
-        }
+        console.log('Adding product:', product.name, 'with image:', imageSrc.substring(0, 50));
         
         const productHTML = `
             <article class="product-card" data-category="${product.category}" data-product-id="${product.id}">
                 <div class="product-top">
                     <div class="price-badge">${product.price.toLocaleString('ar-DZ')} DA</div>
                     <div class="product-image">
-                        <img src="${imageSrc}" alt="${product.name}" class="product-img" onerror="this.src='images/zw-halfzip-white.png'">
+                        <img src="${imageSrc}" alt="${product.name}" class="product-img" onerror="this.src='assets/images/zw-halfzip-white.png'">
                     </div>
                 </div>
                 <div class="product-content">
@@ -586,11 +593,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupLanguageButtons();
 
     // Reload products from localStorage to ensure we have latest data from admin panel
-    products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+    try {
+        const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+        console.log('Loaded products from localStorage:', savedProducts.length, 'products');
+        products = savedProducts;
+    } catch (error) {
+        console.error('Error loading products from localStorage:', error);
+        products = [];
+    }
+    
     cleanProductsData();
     
     // Initialize defaults if needed (removes duplicates and adds defaults if empty)
     initializeDefaultProducts();
+    
+    console.log('Final products list:', products.length, 'products');
     
     // Load products from localStorage (for products.html page)
     await loadProductsToDOM();
