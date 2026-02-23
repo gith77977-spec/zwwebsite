@@ -842,10 +842,13 @@
 
                     // Load existing products from localStorage
                     let productsList = [];
+                    let oldProductsValue = '';
                     try {
-                        productsList = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+                        oldProductsValue = localStorage.getItem('zonewear-products');
+                        productsList = JSON.parse(oldProductsValue) || [];
                     } catch (e) {
                         productsList = [];
+                        oldProductsValue = '';
                     }
                     
                     if (editingProductId) {
@@ -865,11 +868,17 @@
                     // Update the local products variable in admin.html
                     products = productsList;
                     
-                    // Broadcast change event for other windows/tabs listening to localStorage changes
+                    // Broadcast change event for other windows/tabs (and also within this window)
+                    // Use custom event for same-window detection, StorageEvent for cross-window
+                    window.dispatchEvent(new CustomEvent('productsUpdated', {
+                        detail: { products: productsList }
+                    }));
+                    
+                    // Also fire StorageEvent for cross-window listening
                     window.dispatchEvent(new StorageEvent('storage', {
                         key: 'zonewear-products',
                         newValue: JSON.stringify(productsList),
-                        oldValue: JSON.stringify(oldList || []),
+                        oldValue: oldProductsValue,
                         storageArea: localStorage
                     }));
                     
@@ -880,7 +889,12 @@
                     loadInventoryTable();
                     updateDashboard();
                     closeProductModal();
-                    alert(editingProductId ? 'Product updated!' : 'Product added successfully!');
+                    
+                    // Offer to navigate to products page to verify
+                    const message = editingProductId ? 'Product updated successfully!' : 'Product added successfully!';
+                    if (confirm(message + '\n\nWould you like to view the updated products on the website?')) {
+                        window.open('products.html', 'products');
+                    }
                 } catch (error) {
                     console.error('Error saving product:', error);
                     alert('Error saving product: ' + error.message);

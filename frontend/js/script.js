@@ -296,6 +296,8 @@ cleanProductsData();
 
 // Initialize with default products if empty and remove duplicates
 function initializeDefaultProducts() {
+    console.log('initializeDefaultProducts - current products count:', products.length);
+    
     // Remove duplicates based on product name
     const uniqueProducts = [];
     const seenNames = new Set();
@@ -310,8 +312,11 @@ function initializeDefaultProducts() {
     products = uniqueProducts;
     localStorage.setItem('zonewear-products', JSON.stringify(products));
     
+    // Only add defaults if products list is completely empty
     if (products.length === 0) {
-        products = [
+        console.log('No products found, initializing with defaults');
+        
+        const defaultProducts = [
             {
                 id: 1,
                 name: 'ZW Half-Zip White',
@@ -319,7 +324,7 @@ function initializeDefaultProducts() {
                 price: 3500,
                 category: 'mens',
                 stock: 50,
-                image: 'images/zw-halfzip-white.png'
+                image: 'assets/images/zw-halfzip-white.png'
             },
             {
                 id: 2,
@@ -328,7 +333,7 @@ function initializeDefaultProducts() {
                 price: 4500,
                 category: 'mens',
                 stock: 45,
-                image: 'images/zw-hoodie-black.png'
+                image: 'assets/images/zw-hoodie-black.png'
             },
             {
                 id: 3,
@@ -337,7 +342,7 @@ function initializeDefaultProducts() {
                 price: 1999,
                 category: 'mens',
                 stock: 60,
-                image: 'images/zw-classic-tshirt-white.png'
+                image: 'assets/images/zw-classic-tshirt-white.png'
             },
             {
                 id: 4,
@@ -346,7 +351,7 @@ function initializeDefaultProducts() {
                 price: 1999,
                 category: 'mens',
                 stock: 55,
-                image: 'images/zw-classic-tshirt-black.png'
+                image: 'assets/images/zw-classic-tshirt-black.png'
             },
             {
                 id: 5,
@@ -355,7 +360,7 @@ function initializeDefaultProducts() {
                 price: 3800,
                 category: 'womens',
                 stock: 40,
-                image: 'images/zw-halfzip-white.png'
+                image: 'assets/images/zw-halfzip-white.png'
             },
             {
                 id: 6,
@@ -364,10 +369,14 @@ function initializeDefaultProducts() {
                 price: 3800,
                 category: 'womens',
                 stock: 35,
-                image: 'images/zw-hoodie-black.png'
+                image: 'assets/images/zw-hoodie-black.png'
             }
         ];
+        
+        products = defaultProducts;
         localStorage.setItem('zonewear-products', JSON.stringify(products));
+    } else {
+        console.log('Products exist, keeping:', products.length);
     }
 }
 
@@ -1006,6 +1015,20 @@ window.addEventListener('storage', function(e) {
             loadProductsToDOM();
         } catch (error) {
             console.error('Error reloading products from storage:', error);
+        }
+    }
+});
+
+// Also listen for custom events from within the same window (e.g., from admin panel in same tab)
+window.addEventListener('productsUpdated', function(e) {
+    if (e.detail && e.detail.products) {
+        console.log('Custom event: productsUpdated fired, reloading products');
+        try {
+            products = e.detail.products;
+            console.log('Reloaded products from custom event:', products.length);
+            loadProductsToDOM();
+        } catch (error) {
+            console.error('Error reloading products from custom event:', error);
         }
     }
 });
