@@ -538,7 +538,10 @@
             <!-- Inventory Section -->
             <div id="inventory" class="section">
                 <h2>Inventory Management</h2>
-                <button class="btn btn-primary" onclick="deleteAllProducts()" style="margin-bottom: 1rem;">🗑️ Delete All Products</button>
+                <div style="margin-bottom: 1rem;">
+                    <button class="btn btn-primary" onclick="deleteAllProducts()" style="margin-right: 0.5rem;">🗑️ Delete All Products</button>
+                    <button class="btn btn-primary" onclick="addDefaultProducts()" style="background: linear-gradient(135deg, #00aa00, #008800); border-color: rgba(0, 170, 0, 0.5);">➕ Add Default Products</button>
+                </div>
                 <div class="inventory-table-container">
                     <table>
                         <thead>
@@ -940,6 +943,77 @@
                 channel.postMessage({ type: 'productsUpdated', products: [], timestamp: Date.now() });
                 alert('All products deleted!');
             }
+        }
+
+        function addDefaultProducts() {
+            const defaultProducts = [
+                {
+                    id: 1,
+                    name: 'ZW Half-Zip White',
+                    descAr: 'نصف سستة أبيض',
+                    price: 3500,
+                    category: 'mens',
+                    stock: 50,
+                    image: 'assets/images/zw-halfzip-white.png'
+                },
+                {
+                    id: 2,
+                    name: 'ZW Hoodie Black',
+                    descAr: 'هوديي أسود',
+                    price: 4500,
+                    category: 'mens',
+                    stock: 45,
+                    image: 'assets/images/zw-hoodie-black.png'
+                },
+                {
+                    id: 3,
+                    name: 'ZW Classic T-shirt White',
+                    descAr: 'تيشيرت كلاسيك أبيض',
+                    price: 1999,
+                    category: 'mens',
+                    stock: 60,
+                    image: 'assets/images/zw-classic-tshirt-white.png'
+                },
+                {
+                    id: 4,
+                    name: 'ZW Classic T-shirt Black',
+                    descAr: 'تيشيرت كلاسيك أسود',
+                    price: 1999,
+                    category: 'mens',
+                    stock: 55,
+                    image: 'assets/images/zw-classic-tshirt-black.png'
+                },
+                {
+                    id: 5,
+                    name: 'ZW Women Premium Sweater White',
+                    descAr: 'سويتر نسائي بريميوم أبيض',
+                    price: 3800,
+                    category: 'womens',
+                    stock: 40,
+                    image: 'assets/images/zw-halfzip-white.png'
+                },
+                {
+                    id: 6,
+                    name: 'ZW Women Premium Sweater Black',
+                    descAr: 'سويتر نسائي بريميوم أسود',
+                    price: 3800,
+                    category: 'womens',
+                    stock: 35,
+                    image: 'assets/images/zw-hoodie-black.png'
+                }
+            ];
+            
+            if (products.length > 0) {
+                alert('Products already exist. Delete them first if you want to reset to defaults.');
+                return;
+            }
+            
+            products = defaultProducts;
+            localStorage.setItem('zonewear-products', JSON.stringify(products));
+            loadInventoryTable();
+            updateDashboard();
+            channel.postMessage({ type: 'productsUpdated', products: defaultProducts, timestamp: Date.now() });
+            alert('Default products added successfully!');
         }
 
         function loadInventoryTable() {
