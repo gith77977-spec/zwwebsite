@@ -539,8 +539,8 @@
             <div id="inventory" class="section">
                 <h2>Inventory Management</h2>
                 <div style="margin-bottom: 1rem;">
-                    <button class="btn btn-primary" onclick="deleteAllProducts()" style="margin-right: 0.5rem;">🗑️ Delete All Products</button>
-                    <button class="btn btn-primary" onclick="addDefaultProducts()" style="background: linear-gradient(135deg, #00aa00, #008800); border-color: rgba(0, 170, 0, 0.5);">➕ Add Default Products</button>
+                    <button class="btn btn-primary" onclick="showAddProductForm()" style="margin-right: 0.5rem; background: linear-gradient(135deg, #00aa00, #008800); border-color: rgba(0, 170, 0, 0.5);">➕ Add Product</button>
+                    <button class="btn btn-primary" onclick="deleteAllProducts()">🗑️ Delete All Products</button>
                 </div>
                 <div class="inventory-table-container">
                     <table>
@@ -624,9 +624,24 @@
                         <option value="accessories">Accessories</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Stock Quantity</label>
-                    <input type="number" id="product-stock" min="0" value="0" required>
+                <div style="border: 1px solid rgba(204, 0, 0, 0.3); padding: 1rem; margin: 1rem 0; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 1rem; font-weight: 600; color: var(--accent);">Stock by Size</label>
+                    <div class="form-group">
+                        <label>Size S - Quantity</label>
+                        <input type="number" id="product-stock-s" min="0" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Size M - Quantity</label>
+                        <input type="number" id="product-stock-m" min="0" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Size L - Quantity</label>
+                        <input type="number" id="product-stock-l" min="0" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Size XL - Quantity</label>
+                        <input type="number" id="product-stock-xl" min="0" value="0" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Product Image</label>
@@ -813,15 +828,15 @@
                     await saveImageToDb(imageBlob, imageName);
                     
                     const price = parseInt(document.getElementById('product-price').value);
-                    const stock = parseInt(document.getElementById('product-stock').value);
+                    const stockS = parseInt(document.getElementById('product-stock-s').value) || 0;
+                    const stockM = parseInt(document.getElementById('product-stock-m').value) || 0;
+                    const stockL = parseInt(document.getElementById('product-stock-l').value) || 0;
+                    const stockXL = parseInt(document.getElementById('product-stock-xl').value) || 0;
+                    const totalStock = stockS + stockM + stockL + stockXL;
                     
-                    // Validate price and stock are valid numbers
+                    // Validate price is valid number
                     if (isNaN(price) || price < 0) {
                         alert('Invalid price. Please enter a valid number.');
-                        return;
-                    }
-                    if (isNaN(stock) || stock < 0) {
-                        alert('Invalid stock. Please enter a valid number.');
                         return;
                     }
                     
@@ -831,8 +846,14 @@
                         descAr: document.getElementById('product-desc-ar').value,
                         price: price,
                         category: document.getElementById('product-category').value,
-                        stock: stock,
-                        image: imageName, // Store only the image name, not the full blob
+                        stock: totalStock,
+                        sizes: {
+                            s: stockS,
+                            m: stockM,
+                            l: stockL,
+                            xl: stockXL
+                        },
+                        image: imageName,
                         createdAt: new Date().toISOString()
                     };
 
@@ -943,77 +964,6 @@
                 channel.postMessage({ type: 'productsUpdated', products: [], timestamp: Date.now() });
                 alert('All products deleted!');
             }
-        }
-
-        function addDefaultProducts() {
-            const defaultProducts = [
-                {
-                    id: 1,
-                    name: 'ZW Half-Zip White',
-                    descAr: 'نصف سستة أبيض',
-                    price: 3500,
-                    category: 'mens',
-                    stock: 50,
-                    image: 'assets/images/zw-halfzip-white.png'
-                },
-                {
-                    id: 2,
-                    name: 'ZW Hoodie Black',
-                    descAr: 'هوديي أسود',
-                    price: 4500,
-                    category: 'mens',
-                    stock: 45,
-                    image: 'assets/images/zw-hoodie-black.png'
-                },
-                {
-                    id: 3,
-                    name: 'ZW Classic T-shirt White',
-                    descAr: 'تيشيرت كلاسيك أبيض',
-                    price: 1999,
-                    category: 'mens',
-                    stock: 60,
-                    image: 'assets/images/zw-classic-tshirt-white.png'
-                },
-                {
-                    id: 4,
-                    name: 'ZW Classic T-shirt Black',
-                    descAr: 'تيشيرت كلاسيك أسود',
-                    price: 1999,
-                    category: 'mens',
-                    stock: 55,
-                    image: 'assets/images/zw-classic-tshirt-black.png'
-                },
-                {
-                    id: 5,
-                    name: 'ZW Women Premium Sweater White',
-                    descAr: 'سويتر نسائي بريميوم أبيض',
-                    price: 3800,
-                    category: 'womens',
-                    stock: 40,
-                    image: 'assets/images/zw-halfzip-white.png'
-                },
-                {
-                    id: 6,
-                    name: 'ZW Women Premium Sweater Black',
-                    descAr: 'سويتر نسائي بريميوم أسود',
-                    price: 3800,
-                    category: 'womens',
-                    stock: 35,
-                    image: 'assets/images/zw-hoodie-black.png'
-                }
-            ];
-            
-            if (products.length > 0) {
-                alert('Products already exist. Delete them first if you want to reset to defaults.');
-                return;
-            }
-            
-            products = defaultProducts;
-            localStorage.setItem('zonewear-products', JSON.stringify(products));
-            loadInventoryTable();
-            updateDashboard();
-            channel.postMessage({ type: 'productsUpdated', products: defaultProducts, timestamp: Date.now() });
-            alert('Default products added successfully!');
         }
 
         function loadInventoryTable() {
