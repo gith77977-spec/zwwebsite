@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ZONEWEAR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Check authentication before page loads
+        (function() {
+            const adminSession = sessionStorage.getItem('zw-admin-session');
+            if (!adminSession) {
+                window.location.href = 'admin-login.html';
+            }
+        })();
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #000;
+            --secondary: #1a1a1a;
+            --accent: #cc0000;
+            --text: #fff;
+            --text-light: #ccc;
+            --bg: #0a0a0a;
+        }
+
+        @keyframes neonGlow {
+            0%, 100% {
+                text-shadow: 0 0 10px #cc0000, 0 0 20px #cc0000, 0 0 30px #990000;
+                box-shadow: 0 0 10px rgba(204, 0, 0, 0.5), 0 0 20px rgba(204, 0, 0, 0.3), inset 0 0 10px rgba(204, 0, 0, 0.1);
+            }
+            50% {
+                text-shadow: 0 0 20px #cc0000, 0 0 30px #cc0000, 0 0 40px #ff3333;
+                box-shadow: 0 0 20px rgba(204, 0, 0, 0.6), 0 0 30px rgba(204, 0, 0, 0.4), inset 0 0 15px rgba(204, 0, 0, 0.15);
+            }
+        }
+
+        @keyframes containerGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(204, 0, 0, 0.4), inset 0 0 10px rgba(204, 0, 0, 0.05);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(204, 0, 0, 0.6), inset 0 0 15px rgba(204, 0, 0, 0.1);
+            }
+        }
+
+        @keyframes buttonHover {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(204, 0, 0, 0.5), inset 0 0 10px rgba(204, 0, 0, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(204, 0, 0, 0.8), inset 0 0 15px rgba(204, 0, 0, 0.2);
+            }
+        }
+
+        body {
+            font-family: 'Roboto', 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 20% 50%, rgba(204, 0, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(204, 0, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--secondary);
+            padding: 2rem;
+            border-right: 2px solid rgba(204, 0, 0, 0.3);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: inset -20px 0 40px rgba(204, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+            font-size: 1.5rem;
+            animation: neonGlow 3s ease-in-out infinite;
+            letter-spacing: 2px;
+        }
+
+        .sidebar h3 {
+            animation: containerGlow 3s ease-in-out infinite;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(204, 0, 0, 0.2);
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            border-radius: 0;
+            font-weight: 600;
+        }
+
+        .sidebar button:hover {
+            border-color: rgba(204, 0, 0, 0.6);
+            color: var(--accent);
+            background: rgba(204, 0, 0, 0.1);
+            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4), inset 0 0 10px rgba(204, 0, 0, 0.1);
+        }
+
+        .sidebar button.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(204, 0, 0, 0.15);
+            animation: buttonHover 2s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.8);
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(204, 0, 0, 0.2), inset 0 0 15px rgba(204, 0, 0, 0.05);
+            border-radius: 0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--accent);
+            text-shadow: 0 0 15px rgba(204, 0, 0, 0.6);
+            letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #cc0000, #990000);
+            color: var(--text);
+            border: 2px solid rgba(204, 0, 0, 0.5);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(204, 0, 0, 0.4);
+        }
+
+        .logout-btn:hover {
+            box-shadow: 0 0 30px rgba(204, 0, 0, 0.8), inset 0 0 10px rgba(255, 51, 51, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section h2 {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 1.5rem;
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            text-align: center;
+            transition: all 0.3s;
+            animation: containerGlow 3s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(204, 0, 0, 0.3), inset 0 0 10px rgba(204, 0, 0, 0.05);
+        }
+
+        .stat-card:hover {
+            border-color: rgba(204, 0, 0, 0.6);
+            box-shadow: 0 0 30px rgba(204, 0, 0, 0.5), inset 0 0 15px rgba(204, 0, 0, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            color: var(--accent);
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.6);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(26, 26, 26, 0.8);
+            margin-top: 1rem;
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(204, 0, 0, 0.2);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(204, 0, 0, 0.2);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent);
+            font-weight: 700;
+            border-bottom: 2px solid rgba(204, 0, 0, 0.4);
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.5);
+        }
+
+        tr:hover {
+            background: rgba(204, 0, 0, 0.1);
+            box-shadow: inset 0 0 10px rgba(204, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .status-pending {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border-color: rgba(255, 165, 0, 0.4);
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border-color: rgba(76, 175, 80, 0.4);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-radius: 0;
+            margin: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #cc0000, #990000);
+            color: var(--text);
+            border: 2px solid rgba(204, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(204, 0, 0, 0.7), inset 0 0 10px rgba(255, 51, 51, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(204, 0, 0, 0.1);
+            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4), inset 0 0 10px rgba(204, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(204, 0, 0, 0.2);
+            color: var(--text);
+            border-radius: 0;
+            font-family: inherit;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(204, 0, 0, 0.1);
+            box-shadow: 0 0 20px rgba(204, 0, 0, 0.4), inset 0 0 10px rgba(204, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(26, 26, 26, 0.95);
+            padding: 2rem;
+            border: 2px solid rgba(204, 0, 0, 0.4);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(204, 0, 0, 0.5), inset 0 0 20px rgba(204, 0, 0, 0.1);
+            animation: containerGlow 3s ease-in-out infinite;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(204, 0, 0, 0.3);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.6);
+            letter-spacing: 1px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 2px solid rgba(204, 0, 0, 0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>ZONEWEAR</h2>
+            <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 2rem;">Admin Panel</h3>
+            <ul>
+                <li><button onclick="showSection('dashboard')" class="nav-btn active">Dashboard</button></li>
+                <li><button onclick="showSection('orders')" class="nav-btn">Orders</button></li>
+                <li><button onclick="showSection('inventory')" class="nav-btn">Inventory</button></li>
+                <li><button onclick="showSection('analytics')" class="nav-btn">Analytics</button></li>
+                <li><button onclick="showSection('settings')" class="nav-btn">Settings</button></li>
+                <li><a href="admin-settings.html" class="nav-btn" style="text-decoration: none; display: block; padding: 10px 15px; border: 2px solid rgba(204, 0, 0, 0.2); color: var(--text); text-align: left; transition: all 0.3s; margin-bottom: 1rem; background: rgba(0, 0, 0, 0.5);">⚙️ Profile Settings</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Admin Dashboard</h1>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <h2>Dashboard Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Orders</h3>
+                        <div class="value" id="total-orders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Orders</h3>
+                        <div class="value" id="pending-orders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Revenue</h3>
+                        <div class="value" id="total-revenue">0 DA</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Products in Stock</h3>
+                        <div class="value" id="products-stock">2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="orders" class="section">
+                <h2>Orders Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>State</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #999;">No orders yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Inventory Section -->
+            <div id="inventory" class="section">
+                <h2>Inventory Management</h2>
+                <button class="btn btn-primary" onclick="showAddProductForm()">Add Product</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table">
+                        <tr>
+                            <td>ZW Premium Sweater - White</td>
+                            <td>3,500 DA</td>
+                            <td>50</td>
+                            <td>Mens</td>
+                            <td><button class="btn btn-secondary" onclick="editProduct(1)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>ZW Premium Sweater - Black</td>
+                            <td>3,500 DA</td>
+                            <td>45</td>
+                            <td>Mens</td>
+                            <td><button class="btn btn-secondary" onclick="editProduct(2)">Edit</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics" class="section">
+                <h2>Analytics & Reports</h2>
+                <div class="stat-card">
+                    <h3>Sales This Month</h3>
+                    <p style="color: var(--accent); font-size: 1.5rem; margin-top: 1rem;" id="analytics-sales">0 DA</p>
+                </div>
+                <div class="stat-card" style="margin-top: 1rem;">
+                    <h3>Total Customers</h3>
+                    <p style="color: var(--accent); font-size: 1.5rem; margin-top: 1rem;" id="analytics-customers">0</p>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="section">
+                <h2>Settings</h2>
+                <div style="background: var(--secondary); padding: 2rem; max-width: 500px;">
+                    <div class="form-group">
+                        <label>Store Name</label>
+                        <input type="text" value="ZONEWEAR">
+                    </div>
+                    <div class="form-group">
+                        <label>Admin Email</label>
+                        <input type="email" value="admin@zonewear.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <input type="text" value="DA (Algerian Dinar)">
+                    </div>
+                    <button class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Product</h2>
+                <button class="close-modal" onclick="closeProductModal()">×</button>
+            </div>
+            <form id="product-form" onsubmit="handleProductSubmit(event)">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description (Arabic)</label>
+                    <input type="text" id="product-desc-ar">
+                </div>
+                <div class="form-group">
+                    <label>Price (DA)</label>
+                    <input type="number" id="product-price" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="product-category" required>
+                        <option value="mens">Men</option>
+                        <option value="womens">Women</option>
+                        <option value="accessories">Accessories</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Stock Quantity</label>
+                    <input type="number" id="product-stock" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <input type="file" id="product-image-file" accept="image/*">
+                    <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">Select an image to upload (JPG, PNG)</p>
+                </div>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Product</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeProductModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize IndexedDB for images
+        let db;
+        const request = indexedDB.open('ZoneWearDB', 1);
+        request.onerror = () => console.log('Database failed to open');
+        request.onsuccess = () => {
+            db = request.result;
+        };
+        request.onupgradeneeded = (e) => {
+            const database = e.target.result;
+            if (!database.objectStoreNames.contains('images')) {
+                database.createObjectStore('images');
+            }
+        };
+
+        // Save image to IndexedDB
+        function saveImageToDb(imageBlob, imageName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['images'], 'readwrite');
+                const objectStore = transaction.objectStore('images');
+                const imageData = {
+                    id: imageName,
+                    blob: imageBlob,
+                    timestamp: Date.now()
+                };
+                const request = objectStore.put(imageData);
+                request.onsuccess = () => resolve(imageName);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Get image from IndexedDB
+        function getImageFromDb(imageName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['images'], 'readonly');
+                const objectStore = transaction.objectStore('images');
+                const request = objectStore.get(imageName);
+                request.onsuccess = () => {
+                    if (request.result) {
+                        const blob = request.result.blob;
+                        resolve(URL.createObjectURL(blob));
+                    } else {
+                        resolve(null);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Load data from localStorage
+        let orders = JSON.parse(localStorage.getItem('zonewear-orders')) || [];
+        let cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
+        let deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
+        let products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+        let editingProductId = null;
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (id === 'dashboard') updateDashboard();
+            if (id === 'orders') updateOrdersTable();
+            if (id === 'analytics') updateAnalytics();
+        }
+
+        function updateDashboard() {
+            const totalOrders = orders.length;
+            const pendingOrders = orders.filter(o => o.status === 'pending').length;
+            const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+            const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
+            
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('pending-orders').textContent = pendingOrders;
+            document.getElementById('total-revenue').textContent = totalRevenue.toLocaleString('ar-DZ') + ' DA';
+            document.getElementById('products-stock').textContent = totalStock;
+        }
+
+        function updateOrdersTable() {
+            const tbody = document.getElementById('orders-table');
+            const sortedOrders = [...orders].reverse();
+            
+            if (sortedOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No orders yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = sortedOrders.map(order => `
+                <tr>
+                    <td>#${order.id}</td>
+                    <td>${order.customer}</td>
+                    <td>${order.phone}</td>
+                    <td>${order.state}</td>
+                    <td>${order.total.toLocaleString('ar-DZ')} DA</td>
+                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="markAsCompleted(${order.id})">Complete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function markAsCompleted(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = 'completed';
+                localStorage.setItem('zonewear-orders', JSON.stringify(orders));
+                updateOrdersTable();
+                alert('Order marked as completed');
+            }
+        }
+
+        function updateAnalytics() {
+            const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+            const uniqueCustomers = new Set(orders.map(o => o.customer)).size;
+            
+            document.getElementById('analytics-sales').textContent = totalRevenue.toLocaleString('ar-DZ') + ' DA';
+            document.getElementById('analytics-customers').textContent = uniqueCustomers;
+        }
+
+        function showAddProductForm() {
+            editingProductId = null;
+            document.getElementById('modal-title').textContent = 'Add New Product';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-modal').classList.add('active');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.remove('active');
+            editingProductId = null;
+        }
+
+        function handleProductSubmit(event) {
+            event.preventDefault();
+            
+            const imageFile = document.getElementById('product-image-file').files[0];
+            
+            if (!imageFile) {
+                alert('Please select an image');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const imageBlob = new Blob([e.target.result], { type: imageFile.type });
+                const imageName = `product-${Date.now()}-${imageFile.name}`;
+                
+                try {
+                    // Save image to IndexedDB
+                    await saveImageToDb(imageBlob, imageName);
+                    
+                    const product = {
+                        id: editingProductId || Date.now(),
+                        name: document.getElementById('product-name').value,
+                        descAr: document.getElementById('product-desc-ar').value,
+                        price: parseInt(document.getElementById('product-price').value),
+                        category: document.getElementById('product-category').value,
+                        stock: parseInt(document.getElementById('product-stock').value),
+                        image: imageName // Store only the image name, not the full blob
+                    };
+
+                    if (editingProductId) {
+                        // Update existing product
+                        const index = products.findIndex(p => p.id === editingProductId);
+                        if (index !== -1) {
+                            products[index] = product;
+                        }
+                    } else {
+                        // Add new product
+                        products.push(product);
+                    }
+
+                    localStorage.setItem('zonewear-products', JSON.stringify(products));
+                    loadInventoryTable();
+                    closeProductModal();
+                    alert(editingProductId ? 'Product updated!' : 'Product added successfully!');
+                } catch (error) {
+                    alert('Error saving image: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(imageFile);
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                editingProductId = id;
+                document.getElementById('modal-title').textContent = 'Edit Product';
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-desc-ar').value = product.descAr || '';
+                document.getElementById('product-price').value = product.price;
+                document.getElementById('product-category').value = product.category;
+                document.getElementById('product-stock').value = product.stock;
+                document.getElementById('product-modal').classList.add('active');
+            }
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== parseInt(id) && p.id !== id);
+                localStorage.setItem('zonewear-products', JSON.stringify(products));
+                loadInventoryTable();
+                alert('Product deleted!');
+            }
+        }
+
+        function loadInventoryTable() {
+            const tbody = document.getElementById('inventory-table');
+            
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No products yet. Add one to get started!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td>${product.name}</td>
+                    <td>${product.price.toLocaleString('ar-DZ')} DA</td>
+                    <td>${product.stock}</td>
+                    <td>${product.category}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="editProduct(${product.id})">Edit</button>
+                        <button class="btn btn-secondary" onclick="deleteProduct(${product.id})" style="color: #cc0000;">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear admin session
+                sessionStorage.removeItem('zw-admin-session');
+                sessionStorage.removeItem('zw-admin-login-time');
+                // Redirect to admin login page
+                window.location.href = 'admin-login.html';
+            }
+        }
+
+        // Initialize
+        loadInventoryTable();
+        updateDashboard();
+    </script>
+</body>
+</html>

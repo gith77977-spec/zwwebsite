@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - ZONEWEAR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <img src="images/logo.svg" alt="ZONEWEAR" class="logo">
+                <h1>ZONEWEAR</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-home">Home</a></li>
+                <li><a href="products.html" class="active nav-shop">Shop</a></li>
+                <li><a href="about.html" class="nav-about">About</a></li>
+                <li><a href="contact.html" class="nav-contact">Contact</a></li>
+                <li><a href="#" class="cart-icon">🛒 <span id="cart-count">0</span></a></li>
+                <li>
+                    <div class="lang-selector">
+                        <button class="lang-btn active" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="ar">AR</button>
+                    </div>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Products Section -->
+    <section class="products-section">
+        <div class="container">
+            <h2>Our Collection</h2>
+            
+            <!-- Advanced Filters -->
+            <div class="filters-section">
+                <div class="filters-container">
+                    <div class="search-box">
+                        <input type="text" id="search-products" placeholder="ابحث عن المنتجات... Search products...">
+                    </div>
+                    <select id="category-filter" class="filter-select">
+                        <option value="">جميع المنتجات | All Products</option>
+                        <option value="mens">الرجال | Men</option>
+                        <option value="womens">النساء | Women</option>
+                        <option value="accessories">إكسسوارات | Accessories</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid">
+                <!-- Dynamic Products Will Load From localStorage Here -->
+            </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About ZONEWEAR</h4>
+                    <p>Your destination for premium fashion and style</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ZONEWEAR. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

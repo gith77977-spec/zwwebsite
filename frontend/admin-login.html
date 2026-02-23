@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZONEWEAR Admin Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #0a0a0a;
+            --accent-color: #cc0000;
+            --dark-red: #660000;
+            --text-dark: #ffffff;
+            --text-light: #cccccc;
+            --neon-red: #ff3333;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Roboto', 'Cairo', 'Segoe UI', sans-serif;
+            background-color: #000000;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background with red neon glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(204, 0, 0, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(102, 0, 0, 0.1) 0%, transparent 50%);
+            z-index: -2;
+            animation: bgShift 15s ease-in-out infinite;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        /* Top neon line */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #cc0000, transparent);
+            box-shadow: 0 0 20px #cc0000, 0 0 40px rgba(204, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.95) 100%);
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 
+                0 0 60px rgba(204, 0, 0, 0.4),
+                0 0 100px rgba(102, 0, 0, 0.2),
+                inset 0 0 60px rgba(204, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            padding: 50px 40px;
+            position: relative;
+            animation: containerGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes containerGlow {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 60px rgba(204, 0, 0, 0.4),
+                    0 0 100px rgba(102, 0, 0, 0.2),
+                    inset 0 0 60px rgba(204, 0, 0, 0.1);
+                border-color: rgba(204, 0, 0, 0.3);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 80px rgba(204, 0, 0, 0.6),
+                    0 0 120px rgba(102, 0, 0, 0.3),
+                    inset 0 0 80px rgba(204, 0, 0, 0.15);
+                border-color: rgba(204, 0, 0, 0.5);
+            }
+        }
+
+        /* Neon corner effects */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #cc0000, transparent);
+            box-shadow: 0 0 15px #cc0000;
+        }
+
+        .login-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #cc0000, transparent);
+            box-shadow: 0 0 15px #cc0000;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .logo-container {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #cc0000, #880000);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 
+                0 0 30px rgba(204, 0, 0, 0.6),
+                0 0 60px rgba(204, 0, 0, 0.3);
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-header h1 {
+            color: var(--text-dark);
+            font-size: 32px;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(204, 0, 0, 0.3);
+        }
+
+        .login-header p {
+            color: #cc0000;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(204, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-dark);
+            font-size: 14px;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #cc0000;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                0 0 20px rgba(204, 0, 0, 0.4),
+                inset 0 0 20px rgba(204, 0, 0, 0.05);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #cc0000, #880000);
+            color: var(--text-dark);
+            border: 1px solid #cc0000;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(204, 0, 0, 0.3);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 40px rgba(204, 0, 0, 0.6),
+                0 0 60px rgba(204, 0, 0, 0.3);
+            border-color: #ff3333;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .form-footer {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .remember-me input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #cc0000;
+        }
+
+        .messages {
+            margin-top: 15px;
+            min-height: 20px;
+        }
+
+        .error-message {
+            color: #ff3333;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+            animation: slideDown 0.3s ease;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
+        }
+
+        .success-message {
+            color: #00ff88;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+            animation: slideDown 0.3s ease;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(204, 0, 0, 0.2);
+            color: var(--text-light);
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .login-footer p {
+            margin: 5px 0;
+        }
+
+        .divider {
+            color: #cc0000;
+            opacity: 0.5;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 40px 25px;
+                border-radius: 15px;
+            }
+
+            .login-header h1 {
+                font-size: 28px;
+            }
+
+            .logo-container {
+                width: 60px;
+                height: 60px;
+                font-size: 32px;
+            }
+        }
+
+        /* Stars and sparkles effect */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .star {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #cc0000;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo-container">🔐</div>
+                <h1>ZONEWEAR</h1>
+                <p>Admin Access</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        placeholder="Enter your username" 
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="Enter your password" 
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember" style="margin: 0; cursor: pointer;">Remember me</label>
+                </div>
+
+                <button type="submit" class="login-btn">Login</button>
+
+                <div class="messages">
+                    <div class="error-message" id="errorMessage"></div>
+                    <div class="success-message" id="successMessage"></div>
+                </div>
+            </form>
+
+            <div class="login-footer">
+                <p>🔒 Secure Admin Portal</p>
+                <p class="divider">─────────────</p>
+                <p>Brand Owner Access Only</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../config.js"></script>
+    <script>
+        // Use API config from config.js
+        const FALLBACK_USERNAME = 'zonewear2026';
+        const FALLBACK_PASSWORD = 'Wz2L9MqswZweb';
+
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const rememberMe = document.getElementById('remember');
+
+        // Generate random stars
+        function generateStars() {
+            const starCount = 50;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(star);
+            }
+        }
+
+        // Check if already logged in
+        window.addEventListener('load', function() {
+            generateStars();
+            
+            const adminSession = sessionStorage.getItem('zw-admin-session');
+            if (adminSession) {
+                window.location.href = 'admin.html';
+            }
+            
+            // Load remember me
+            const savedUsername = localStorage.getItem('zw-remember-username');
+            if (savedUsername) {
+                document.getElementById('username').value = savedUsername;
+                rememberMe.checked = true;
+            }
+        });
+
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Hide previous messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // Show loading
+            const btn = loginForm.querySelector('.login-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Authenticating...';
+            btn.disabled = true;
+
+            try {
+                // Try to authenticate via backend
+                const loginUrl = getApiUrl('LOGIN');
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    // Store token and session
+                    if (rememberMe.checked) {
+                        localStorage.setItem('zw-remember-username', username);
+                    } else {
+                        localStorage.removeItem('zw-remember-username');
+                    }
+
+                    sessionStorage.setItem('zw-admin-session', 'true');
+                    sessionStorage.setItem('zw-admin-token', data.token);
+                    sessionStorage.setItem('zw-admin-login-time', new Date().getTime());
+                    sessionStorage.setItem('zw-admin-username', data.admin.username);
+                    
+                    successMessage.textContent = `✓ Welcome ${data.admin.username}! Redirecting...`;
+                    successMessage.style.display = 'block';
+
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Authentication failed');
+                }
+            } catch (err) {
+                console.log('Backend unavailable, trying fallback mode...', err);
+                
+                // Fallback to local validation if server is down
+                if (username === FALLBACK_USERNAME && password === FALLBACK_PASSWORD) {
+                    if (rememberMe.checked) {
+                        localStorage.setItem('zw-remember-username', username);
+                    } else {
+                        localStorage.removeItem('zw-remember-username');
+                    }
+
+                    sessionStorage.setItem('zw-admin-session', 'true');
+                    sessionStorage.setItem('zw-admin-token', 'fallback-token-' + Date.now());
+                    sessionStorage.setItem('zw-admin-login-time', new Date().getTime());
+                    sessionStorage.setItem('zw-admin-username', username);
+                    
+                    successMessage.textContent = '✓ Login successful (Offline Mode)! Redirecting...';
+                    successMessage.style.display = 'block';
+
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1500);
+                } else {
+                    errorMessage.textContent = '✗ Invalid username or password';
+                    errorMessage.style.display = 'block';
+
+                    document.getElementById('password').value = '';
+                    
+                    loginForm.style.animation = 'none';
+                    setTimeout(() => {
+                        loginForm.style.animation = 'shake 0.5s ease';
+                    }, 10);
+                }
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Allow Enter key to submit
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

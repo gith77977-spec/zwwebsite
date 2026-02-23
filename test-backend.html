@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Server Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #0a0a0a;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        h1 {
+            color: #0f0;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px #0f0;
+            text-align: center;
+        }
+
+        .test-section {
+            margin-bottom: 2rem;
+            border: 1px solid #0f0;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        .test-title {
+            color: #0f0;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #00ff00;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        button:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #111;
+            border-left: 3px solid #0f0;
+            border-radius: 3px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .success {
+            color: #0f0;
+            background: rgba(0, 255, 0, 0.1);
+            border-left-color: #0f0;
+        }
+
+        .error {
+            color: #ff3333;
+            background: rgba(255, 51, 51, 0.1);
+            border-left-color: #ff3333;
+        }
+
+        .loading {
+            color: #ffff00;
+            font-style: italic;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-ok {
+            background: rgba(0, 255, 0, 0.2);
+            color: #0f0;
+        }
+
+        .status-error {
+            background: rgba(255, 51, 51, 0.2);
+            color: #ff3333;
+        }
+
+        .status-pending {
+            background: rgba(255, 255, 0, 0.2);
+            color: #ffff00;
+        }
+
+        .info-box {
+            background: rgba(51, 153, 255, 0.1);
+            border: 1px solid #3399ff;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            color: #3399ff;
+        }
+
+        .warning-box {
+            background: rgba(255, 153, 0, 0.1);
+            border: 1px solid #ff9900;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            color: #ff9900;
+        }
+
+        code {
+            background: #111;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 ZONEWEAR Backend Test Panel</h1>
+
+        <div class="info-box">
+            <strong>ℹ️ قبل اختبار الخادم:</strong>
+            <br>تأكد من تشغيل الخادم: <code>cd backend && npm start</code>
+            <br>الخادم يجب أن يعمل على: <code>http://localhost:3000</code>
+        </div>
+
+        <!-- Health Check -->
+        <div class="test-section">
+            <div class="test-title">1️⃣ Health Check <span class="status status-pending" id="health-status">Not tested</span></div>
+            <button onclick="testHealth()">اختبر الاتصال</button>
+            <div class="result" id="health-result"></div>
+        </div>
+
+        <!-- Database Status -->
+        <div class="test-section">
+            <div class="test-title">2️⃣ Database Status <span class="status status-pending" id="db-status">Not tested</span></div>
+            <button onclick="testDatabase()">اختبر قاعدة البيانات</button>
+            <div class="result" id="db-result"></div>
+        </div>
+
+        <!-- Admin Login -->
+        <div class="test-section">
+            <div class="test-title">3️⃣ Admin Login <span class="status status-pending" id="login-status">Not tested</span></div>
+            <button onclick="testLogin()">اختبر تسجيل الدخول</button>
+            <div class="result" id="login-result"></div>
+        </div>
+
+        <!-- Get Products -->
+        <div class="test-section">
+            <div class="test-title">4️⃣ Get Products <span class="status status-pending" id="products-status">Not tested</span></div>
+            <button onclick="testProducts()">اختبر المنتجات</button>
+            <div class="result" id="products-result"></div>
+        </div>
+
+        <!-- Get Orders -->
+        <div class="test-section">
+            <div class="test-title">5️⃣ Get Orders <span class="status status-pending" id="orders-status">Not tested</span></div>
+            <button onclick="testOrders()">اختبر الطلبات</button>
+            <div class="result" id="orders-result"></div>
+        </div>
+
+        <!-- Comprehensive Test -->
+        <div class="test-section">
+            <div class="test-title">🔬 Run All Tests</div>
+            <button onclick="runAllTests()">شغّل جميع الاختبارات</button>
+            <div class="result" id="all-tests-result"></div>
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ ملاحظات مهمة:</strong>
+            <br>• البيانات الافتراضية:
+            <br>&nbsp;&nbsp;- Username: <code>zonewear2026</code>
+            <br>&nbsp;&nbsp;- Password: <code>Wz2L9MqswZweb</code>
+            <br>• قاعدة البيانات توجد في: <code>backend/zonewear.db</code>
+            <br>• النسخ الاحتياطية توجد في: <code>backend/backups/</code>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let authToken = null;
+
+        function updateStatus(elementId, status) {
+            const statusEl = document.getElementById(elementId);
+            statusEl.textContent = status;
+            
+            if (status.includes('✅')) {
+                statusEl.className = 'status status-ok';
+            } else if (status.includes('❌')) {
+                statusEl.className = 'status status-error';
+            } else {
+                statusEl.className = 'status status-pending';
+            }
+        }
+
+        function showResult(elementId, data, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = 'result ' + (isError ? 'error' : 'success');
+            el.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testHealth() {
+            updateStatus('health-status', '⏳ Testing...');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('health-status', '✅ OK');
+                    showResult('health-result', data);
+                } else {
+                    updateStatus('health-status', '❌ Failed');
+                    showResult('health-result', data, true);
+                }
+            } catch (err) {
+                updateStatus('health-status', '❌ Error');
+                showResult('health-result', { error: err.message }, true);
+            }
+        }
+
+        async function testDatabase() {
+            updateStatus('db-status', '⏳ Testing...');
+            try {
+                const response = await fetch(`${API_BASE}/products`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('db-status', '✅ OK');
+                    showResult('db-result', {
+                        success: true,
+                        totalProducts: data.products.length,
+                        products: data.products.slice(0, 2) // Show first 2
+                    });
+                } else {
+                    updateStatus('db-status', '❌ Failed');
+                    showResult('db-result', data, true);
+                }
+            } catch (err) {
+                updateStatus('db-status', '❌ Error');
+                showResult('db-result', { error: err.message }, true);
+            }
+        }
+
+        async function testLogin() {
+            updateStatus('login-status', '⏳ Testing...');
+            try {
+                const response = await fetch(`${API_BASE}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'zonewear2026',
+                        password: 'Wz2L9MqswZweb'
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    updateStatus('login-status', '✅ OK');
+                    showResult('login-result', {
+                        success: true,
+                        message: 'Login successful',
+                        admin: data.admin,
+                        tokenReceived: '***' // Don't show token
+                    });
+                } else {
+                    updateStatus('login-status', '❌ Failed');
+                    showResult('login-result', data, true);
+                }
+            } catch (err) {
+                updateStatus('login-status', '❌ Error');
+                showResult('login-result', { error: err.message }, true);
+            }
+        }
+
+        async function testProducts() {
+            updateStatus('products-status', '⏳ Testing...');
+            try {
+                const response = await fetch(`${API_BASE}/products`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('products-status', '✅ OK');
+                    showResult('products-result', {
+                        success: true,
+                        totalProducts: data.products.length,
+                        sampleProduct: data.products[0] || null
+                    });
+                } else {
+                    updateStatus('products-status', '❌ Failed');
+                    showResult('products-result', data, true);
+                }
+            } catch (err) {
+                updateStatus('products-status', '❌ Error');
+                showResult('products-result', { error: err.message }, true);
+            }
+        }
+
+        async function testOrders() {
+            if (!authToken) {
+                showResult('orders-result', { 
+                    error: 'You need to login first. Run test 3 first.' 
+                }, true);
+                updateStatus('orders-status', '❌ Not logged in');
+                return;
+            }
+
+            updateStatus('orders-status', '⏳ Testing...');
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('orders-status', '✅ OK');
+                    showResult('orders-result', {
+                        success: true,
+                        totalOrders: data.orders.length,
+                        recentOrders: data.orders.slice(0, 2)
+                    });
+                } else {
+                    updateStatus('orders-status', '❌ Failed');
+                    showResult('orders-result', data, true);
+                }
+            } catch (err) {
+                updateStatus('orders-status', '❌ Error');
+                showResult('orders-result', { error: err.message }, true);
+            }
+        }
+
+        async function runAllTests() {
+            const resultEl = document.getElementById('all-tests-result');
+            resultEl.className = 'result loading';
+            resultEl.textContent = 'Running all tests...';
+
+            const results = {
+                timestamp: new Date().toISOString(),
+                tests: [],
+                summary: { passed: 0, failed: 0 }
+            };
+
+            // Test Health
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                results.tests.push({
+                    name: 'Health Check',
+                    status: response.ok ? 'PASSED' : 'FAILED',
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                if (response.ok) results.summary.passed++;
+                else results.summary.failed++;
+            } catch (err) {
+                results.tests.push({
+                    name: 'Health Check',
+                    status: 'ERROR',
+                    error: err.message
+                });
+                results.summary.failed++;
+            }
+
+            // Test Login
+            try {
+                const response = await fetch(`${API_BASE}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'zonewear2026',
+                        password: 'Wz2L9MqswZweb'
+                    })
+                });
+                const data = await response.json();
+                results.tests.push({
+                    name: 'Admin Login',
+                    status: response.ok ? 'PASSED' : 'FAILED',
+                    hasToken: !!data.token
+                });
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    results.summary.passed++;
+                } else results.summary.failed++;
+            } catch (err) {
+                results.tests.push({
+                    name: 'Admin Login',
+                    status: 'ERROR',
+                    error: err.message
+                });
+                results.summary.failed++;
+            }
+
+            // Test Products
+            try {
+                const response = await fetch(`${API_BASE}/products`);
+                const data = await response.json();
+                results.tests.push({
+                    name: 'Get Products',
+                    status: response.ok ? 'PASSED' : 'FAILED',
+                    productCount: data.products?.length || 0
+                });
+                if (response.ok) results.summary.passed++;
+                else results.summary.failed++;
+            } catch (err) {
+                results.tests.push({
+                    name: 'Get Products',
+                    status: 'ERROR',
+                    error: err.message
+                });
+                results.summary.failed++;
+            }
+
+            // Test Orders (if authenticated)
+            if (authToken) {
+                try {
+                    const response = await fetch(`${API_BASE}/orders`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    const data = await response.json();
+                    results.tests.push({
+                        name: 'Get Orders',
+                        status: response.ok ? 'PASSED' : 'FAILED',
+                        orderCount: data.orders?.length || 0
+                    });
+                    if (response.ok) results.summary.passed++;
+                    else results.summary.failed++;
+                } catch (err) {
+                    results.tests.push({
+                        name: 'Get Orders',
+                        status: 'ERROR',
+                        error: err.message
+                    });
+                    results.summary.failed++;
+                }
+            }
+
+            resultEl.className = 'result success';
+            resultEl.textContent = JSON.stringify(results, null, 2);
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', function() {
+            console.log('Test panel ready. Backend should be running on port 3000.');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,522 @@
+================================================================================
+                  HOSTING INFRASTRUCTURE ANALYSIS REPORT
+================================================================================
+PROJECT: ZONEWEAR (Clothing Brand E-Commerce Website)
+DATE: February 23, 2026
+
+================================================================================
+1. PROJECT TYPE CLASSIFICATION
+================================================================================
+
+Primary Type:     E-Commerce Platform
+Secondary Type:   Product Management System
+Architecture:     Full-Stack Web Application
+
+Classification Details:
+  • User-facing storefront: YES
+  • Admin management panel: YES
+  • Product catalog management: YES
+  • Order processing: YES
+  • File uploads (images/media): YES
+  • User authentication: YES
+  • Payment processing: Planned
+  • Multi-user support: Admin + Customer
+
+================================================================================
+2. CURRENT TECHNOLOGY STACK
+================================================================================
+
+Frontend:
+  • HTML5, CSS3, Vanilla JavaScript
+  • Static assets (no framework)
+  • Client-side routing: None (traditional pages)
+
+Backend:
+  • Runtime: Node.js v14+
+  • Framework: Express 4.18.2
+  • Language: JavaScript
+
+Database:
+  • Current: SQLite3 (5.1.6) - NOT PRODUCTION READY
+  • Storage: Single file (zonewear.db, 32 KB)
+  • Tables: 4 (admins, products, orders, backups)
+
+Authentication & Security:
+  • Password hashing: bcryptjs (10 rounds)
+  • Token auth: JWT (JSON Web Tokens)
+  • Token lifespan: 7 days
+  • CORS: Configured with origin validation
+
+File Storage:
+  • Current: Local filesystem
+  • Locations: /images/, /videos/
+  • Limitation: Not scalable
+
+Process Management:
+  • Local: npm start
+  • Production: PM2 with clustering
+  • Auto-restart: Enabled
+  • Memory limit: 500MB per instance
+
+API Endpoints:
+  • Total: 14 REST endpoints
+  • Authentication: JWT-based
+  • Rate limiting: None (should be added)
+
+Dependencies (8 packages):
+  • express, cors, sqlite3, bcryptjs, jsonwebtoken, body-parser, dotenv, pm2
+
+================================================================================
+3. REQUIRED TECHNOLOGIES FOR SCALABILITY
+================================================================================
+
+MUST REPLACE/ADD:
+├─ Database
+│  ├─ REMOVE: SQLite3 (file-based, single-connection)
+│  └─ ADD: PostgreSQL 12+ OR MySQL 8+
+│
+├─ File Storage
+│  ├─ REMOVE: Local filesystem
+│  └─ ADD: S3-compatible storage (AWS S3, DigitalOcean Spaces, Cloudinary)
+│
+├─ Caching Layer
+│  ├─ ADD: Redis (for sessions, cart, rate limiting)
+│
+├─ Payment Gateway
+│  ├─ ADD: Stripe OR PayPal API integration
+│
+├─ CDN / Static Delivery
+│  ├─ ADD: CloudFront, Cloudflare, or DigitalOcean CDN
+│
+├─ Monitoring & Logging
+│  ├─ ADD: Application monitoring (New Relic, DataDog, or simple ELK)
+│  └─ ADD: Error tracking (Sentry or Rollbar)
+│
+└─ Load Balancing
+   └─ ADD: Nginx or cloud load balancer
+
+KEEP/OPTIMIZE:
+  • Node.js + Express: KEEP (good choice)
+  • JWT authentication: KEEP
+  • PM2 process manager: UPGRADE to orchestration
+
+================================================================================
+4. EXPECTED TRAFFIC SCALE ESTIMATION
+================================================================================
+
+Current State:
+  • Users: < 100 (bootstrapping phase)
+  • Requests/day: < 1,000
+  • Concurrent users: < 10
+  • Data size: < 100 MB
+
+Target Scale (12-24 months):
+  • Users: 10,000 - 50,000
+  • Requests/day: 100,000 - 500,000
+  • Concurrent users: 100 - 500
+  • Data size: 1 - 10 GB
+  • Transactions/day: 1,000 - 10,000
+
+Growth Rate: HIGH (assumed based on future scalability requirement)
+
+Performance Requirements:
+  • Page load time: < 2 seconds (P95)
+  • API response time: < 200ms (P95)
+  • Availability: 99.5% uptime minimum
+  • Database queries: < 100ms average
+
+================================================================================
+5. REQUIRED SERVER INFRASTRUCTURE
+================================================================================
+
+COMPUTE LAYER:
+  ├─ Initial:     VPS 2-4GB RAM, 2-4 CPU cores (single instance)
+  ├─ Medium:      VPS 8-16GB RAM, 4-8 cores OR 3-5 small instances
+  ├─ Scale:       Containerized auto-scaling (Kubernetes)
+  └─ Pattern:     Horizontal scaling via load balancing
+
+DATABASE LAYER:
+  ├─ Initial:     Managed PostgreSQL (single instance)
+  ├─ Medium:      PostgreSQL with read replicas
+  ├─ Scale:       Postgres with replication + backup automation
+  └─ Backup:      Daily automated backups (30-day retention minimum)
+
+STORAGE LAYER:
+  ├─ Images:      Object storage (S3-compatible)
+  ├─ Videos:      CDN-backed object storage
+  ├─ Backups:     Off-site backup storage
+  └─ Capacity:    500 GB - 2 TB initially
+
+SESSION/CACHE:
+  ├─ Type:        Redis or Memcached
+  ├─ Use:         User sessions, shopping cart, rate limiting
+  └─ Size:        1-2 GB initially
+
+NETWORK:
+  ├─ CDN:         Required (CloudFlare, AWS CloudFront, Akamai)
+  ├─ SSL/TLS:     Automatic renewal (Let's Encrypt recommended)
+  ├─ DDoS:        Basic protection via CDN
+  └─ Monitoring:  Real-time uptime monitoring
+
+================================================================================
+6. HOSTING INFRASTRUCTURE RECOMMENDATIONS
+================================================================================
+
+TIER 1 - BOOTSTRAP PHASE (0-3 months)
+────────────────────────────────────────
+  Host Type:      Shared VPS or Simple Cloud Platform
+  Provider Type:  Managed hosting (offload DevOps)
+  Specs:
+    • 2-4 GB RAM
+    • 2 CPU cores
+    • 40-50 GB SSD storage
+    • Managed database (PostgreSQL)
+    • Object storage included
+  
+  Recommended Platform Category:
+    • Hostinger VPS (Simple, affordable)
+    • Linode (transparent pricing)
+    • DigitalOcean Droplets (developer-friendly)
+    • AWS Lightsail (AWS with simplicity)
+
+Cost Estimate: $10-30/month
+
+────────────────────────────────────────
+
+TIER 2 - GROWTH PHASE (3-12 months)
+────────────────────────────────────────
+  Host Type:      Managed VPS Cluster OR Container Platform
+  Provider Type:  Platform as a Service (PaaS)
+  Architecture:
+    • 3-5 application instances (load balanced)
+    • Managed PostgreSQL with replication
+    • Redis for caching
+    • S3-compatible object storage
+    • Automated backups & disaster recovery
+  
+  Recommended Platform Category:
+    • DigitalOcean App Platform (easy scaling)
+    • AWS Elastic Beanstalk (managed containers)
+    • Heroku (simplest, higher cost)
+    • Railway.app (modern, PostgreSQL built-in)
+    • Render (free tier available)
+
+Cost Estimate: $50-200/month
+
+────────────────────────────────────────
+
+TIER 3 - ENTERPRISE PHASE (12+ months)
+────────────────────────────────────────
+  Host Type:      Container Orchestration (Kubernetes)
+  Provider Type:  Cloud Infrastructure as Code
+  Architecture:
+    • Kubernetes cluster (3-5 nodes minimum)
+    • Managed PostgreSQL (replicated)
+    • Redis cluster (high availability)
+    • S3 for objects + CloudFront CDN
+    • Prometheus + Grafana monitoring
+    • ELK stack for logging
+    • CI/CD pipeline (GitHub Actions / GitLab CI)
+  
+  Recommended Platform Category:
+    • AWS ECS + RDS (managed containers)
+    • Google Cloud GKE (best Kubernetes)
+    • DigitalOcean Kubernetes
+    • Azure Kubernetes Service (AKS)
+
+Cost Estimate: $300-1000+/month
+
+================================================================================
+7. DATABASE MIGRATION PATHWAY
+================================================================================
+
+CURRENT:   SQLite (local file) - REMOVE
+PHASE 1:   PostgreSQL (managed, single instance)
+PHASE 2:   PostgreSQL (with read replicas + auto-backup)
+PHASE 3:   PostgreSQL (with sharding if needed)
+
+Migration Strategy:
+  1. Set up PostgreSQL managed instance
+  2. Export data from SQLite
+  3. Transform schema to PostgreSQL
+  4. Run parallel testing
+  5. Cutover with zero downtime (replication)
+  
+Timeline: 1-2 weeks
+
+================================================================================
+8. STORAGE STRATEGY
+================================================================================
+
+LOCAL FILESYSTEM (Current):     × REMOVE
+├─ Problem: Not scalable across instances
+├─ Problem: No versioning or CDN
+├─ Problem: No backup automation
+└─ Problem: Single point of failure
+
+RECOMMENDED: S3-Compatible Object Storage
+├─ Provider: AWS S3 / DigitalOcean Spaces / Cloudinary
+├─ Folder Structure:
+│  ├─ /products/images/     (indexed, CDN-backed)
+│  ├─ /products/videos/     (streaming, CDN-backed)
+│  ├─ /backups/             (daily automatic)
+│  └─ /temp/                (uploads in transit)
+├─ Lifecycle Policy: Auto-delete temp after 24h
+├─ Versioning: Enabled
+└─ Replication: Cross-region backup
+
+Estimated Cost: $5-20/month for 1-100 GB
+
+================================================================================
+9. BACKUP & DISASTER RECOVERY
+================================================================================
+
+Current Solution:     Manual backups in /db/ folder (unreliable)
+REQUIRED Solution:    Automated backup strategy
+
+Strategy:
+  Backup Target 1 - Database
+    • Type: Automated PostgreSQL snapshots
+    • Frequency: Daily + hourly continuous replication
+    • Retention: 30 days minimum
+    • Recovery Time Objective (RTO): < 1 hour
+    • Recovery Point Objective (RPO): < 15 minutes
+
+  Backup Target 2 - File Storage
+    • Type: Object storage with versioning
+    • Frequency: Continuous (real-time)
+    • Retention: 90 days minimum
+    • Off-site replication: Yes (different region)
+
+  Backup Target 3 - Application
+    • Type: Git repository (all code)
+    • Frequency: Continuous (push-on-deploy)
+    • Retention: Permanent
+    
+Disaster Recovery:
+  • RTO: < 4 hours
+  • RPO: < 1 hour
+  • Testing: Quarterly recovery drills minimum
+
+================================================================================
+10. SECURITY REQUIREMENTS
+================================================================================
+
+AUTHENTICATION:
+  ✓ JWT tokens (current implementation)
+  ✓ Password hashing with bcryptjs (current)
+  ✓ Add: Password policy enforcement
+  ✓ Add: Two-factor authentication (future)
+  ✓ Add: OAuth2 integration (Google/Facebook login)
+
+DATA IN TRANSIT:
+  ✓ HTTPS/TLS 1.2+ (mandatory)
+  ✓ Certificate auto-renewal
+  ✓ HSTS headers
+
+DATA AT REST:
+  ✓ Database encryption (PostgreSQL native)
+  ✓ Object storage encryption (S3 default)
+  ✓ Sensitive data masking in logs
+
+NETWORK:
+  ✓ Firewall rules (restrict DB access)
+  ✓ VPC isolation (database not public)
+  ✓ DDoS protection (CloudFlare / AWS Shield)
+  ✓ Rate limiting (Redis + middleware)
+
+COMPLIANCE:
+  ? GDPR (if EU customers) - data residency required
+  ? PCI DSS (if storing payment data) - SOC2 compliance
+  ? Regional data protection laws
+
+================================================================================
+11. DEPLOYMENT ARCHITECTURE (RECOMMENDED)
+================================================================================
+
+TIER 1 - Simple VPS Deployment:
+┌─────────────────────────────────────────────────────────┐
+│ CloudFlare CDN (Caching + DDoS)                        │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ DigitalOcean / Linode VPS                              │
+│  - Node.js + Express (PM2 managed)                     │
+│  - Nginx reverse proxy                                 │
+└─────────────────────────────────────────────────────────┘
+         ↙              ↙              ↙
+    ┌────────┐    ┌────────┐    ┌─────────────┐
+    │PostgreSQL│  │Redis   │    │DigitalOcean│
+    │Managed   │  │Cache   │    │ Spaces (S3) │
+    └────────┘    └────────┘    └─────────────┘
+
+TIER 3 - Kubernetes (Enterprise):
+┌─────────────────────────────────────────────────────────┐
+│ CloudFlare / AWS CloudFront CDN                        │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ AWS Load Balancer / Nginx Ingress Controller           │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ Kubernetes Cluster (3-5 nodes)                         │
+│  - Node.js pods (auto-scaled)                          │
+│  - Horizontal Pod Autoscaler (HPA)                     │
+│  - Prometheus + Grafana monitoring                     │
+└─────────────────────────────────────────────────────────┘
+         ↙              ↙              ↙
+    ┌────────┐    ┌────────┐    ┌─────────────┐
+    │AWS RDS │    │AWS     │    │ AWS S3      │
+    │PostgreSQL│  │ElastiCache│  │ + CloudFront│
+    └────────┘    └────────┘    └─────────────┘
+
+================================================================================
+12. COST ESTIMATE SUMMARY
+================================================================================
+
+PHASE 1 (Bootstrap - 0-3 months):
+  ├─ DigitalOcean VPS:        $15/month
+  ├─ PostgreSQL Managed:      $15/month
+  ├─ Digital Ocean Spaces:    $5/month
+  ├─ Monitoring:              FREE (basic)
+  └─ TOTAL:                   ~$35-50/month
+
+PHASE 2 (Growth - 3-12 months):
+  ├─ Load Balanced VPS:       $60-100/month
+  ├─ PostgreSQL Replica:      $30/month
+  ├─ Redis Cache:             $15/month
+  ├─ CDN:                     $10-20/month
+  ├─ Monitoring:              $0-50/month
+  └─ TOTAL:                   ~$115-215/month
+
+PHASE 3 (Enterprise - 12+ months):
+  ├─ Kubernetes (AWS ECS):    $200-400/month
+  ├─ RDS Multi-AZ:           $100-200/month
+  ├─ Redis Cluster:          $50-100/month
+  ├─ CloudFront CDN:         $20-50/month
+  ├─ Monitoring & Logging:   $50-150/month
+  └─ TOTAL:                   ~$420-900/month
+
+Note: Assumes 10K-50K daily requests by Phase 3
+Add 20-30% buffer for unexpected costs
+
+================================================================================
+13. ALTERNATIVE HOSTING OPTIONS (PLATFORM-SPECIFIC)
+================================================================================
+
+Option A - ALL-IN-ONE PLATFORM (Beginners)
+  Platform:    Railway.app / Render.com / Fly.io
+  Pros:        Simple deployment, PostgreSQL included, auto-scaling
+  Cons:        Vendor lock-in, less control
+  Cost:        $20-100/month
+  Scalability: Up to small-medium traffic
+
+Option B - MANAGED VPS + SERVICES (Balanced)
+  Platform:    DigitalOcean App Platform + Spaces + Managed DB
+  Pros:        Good balance of simplicity and control
+  Cons:        Moderate complexity
+  Cost:        $50-200/month
+  Scalability: Up to medium/high traffic
+
+Option C - PURE CLOUD (Control)
+  Platform:    AWS (EC2 + RDS + S3) / Google Cloud (GCP) / Azure
+  Pros:        Maximum control, best scalability, global presence
+  Cons:        Complex, steep learning curve, expensive if misconfigured
+  Cost:        $100-1000+/month
+  Scalability: Unlimited (enterprise-grade)
+
+Option D - CONTAINERIZED (Future-Proof)
+  Platform:    Docker + Kubernetes on DigitalOcean / AWS / GCP
+  Pros:        Portable, scalable, industry standard
+  Cons:        Requires DevOps expertise
+  Cost:        $200-500+/month
+  Scalability: Enterprise-grade
+
+RECOMMENDATION FOR THIS PROJECT:
+  → START with Option B (DigitalOcean App Platform)
+  → MIGRATE to Option C (AWS) when traffic > 100K daily requests
+  → ADOPT Option D (Kubernetes) when complexity > team capacity
+
+================================================================================
+14. MIGRATION CHECKLIST (From Current to Production-Ready)
+================================================================================
+
+IMMEDIATE (Week 1):
+  ☐ Set up PostgreSQL managed database
+  ☐ Migrate data from SQLite
+  ☐ Configure S3-compatible storage
+  ☐ Update Node.js code for new database connection
+  ☐ Test backup/restore procedure
+
+SHORT-TERM (Weeks 2-4):
+  ☐ Set up Redis cache
+  ☐ Implement rate limiting
+  ☐ Configure CDN (CloudFlare)
+  ☐ Enable monitoring (New Relic / DataDog trial)
+  ☐ Set up automated daily backups
+
+MID-TERM (Month 2-3):
+  ☐ Integrate payment gateway (Stripe)
+  ☐ Implement SSL certificate auto-renewal
+  ☐ Set up CI/CD pipeline (GitHub Actions)
+  ☐ Load testing (simulate 10K concurrent users)
+  ☐ Security audit and penetration testing
+
+LONG-TERM (Month 4+):
+  ☐ Consider Kubernetes migration
+  ☐ Implement advanced monitoring (ELK/Prometheus)
+  ☐ Global CDN expansion
+  ☐ Database query optimization
+  ☐ Vertical and horizontal scaling optimization
+
+================================================================================
+15. FINAL RECOMMENDATION
+================================================================================
+
+PROJECT CLASSIFICATION: E-Commerce Platform (Full-Stack)
+CURRENT STATE: Suitable for development/testing only
+PRODUCTION REQUIREMENTS: Replace SQLite + add managed services
+
+RECOMMENDED HOSTING TIER:
+
+Timeline: Bootstrap (Now) → Growth (6 months) → Enterprise (12+ months)
+
+BOOTSTRAP CHOICE (Recommended for immediate launch):
+┌─────────────────────────────────────────────┐
+│ DigitalOcean App Platform                   │
+│ + Managed PostgreSQL                        │
+│ + DigitalOcean Spaces (S3-compatible)       │
+│ + CloudFlare CDN (free tier)                │
+│                                             │
+│ Cost: $35-50/month                          │
+│ Setup time: 2-3 hours                       │
+│ Scalability: Up to 100K daily requests      │
+│ Team: Suitable for 1-2 developers          │
+└─────────────────────────────────────────────┘
+
+MAJOR CHANGES REQUIRED:
+  1. Database: SQLite → PostgreSQL (essential)
+  2. Storage: Local filesystem → Object Storage S3 (essential)
+  3. Caching: None → Redis (recommended)
+  4. Monitoring: None → Basic monitoring (recommended)
+  5. Backup: Manual → Automated (essential)
+
+CRITICAL DEPENDENCIES TO REMOVE:
+  ✗ Local file-based SQLite
+  ✗ Local image/video storage
+  ✗ Single-instance PM2 setup
+  ✗ No rate limiting
+  ✗ No caching layer
+
+MUST-HAVE FOR SCALABILITY:
+  ✓ Managed database with auto-backup
+  ✓ Object storage with CDN
+  ✓ Distributed caching (Redis)
+  ✓ Load balancing / auto-scaling
+  ✓ Centralized logging
+  ✓ Monitoring & alerting
+
+================================================================================
+                            END OF ANALYSIS
+================================================================================

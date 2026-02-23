@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - ZONEWEAR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Check authentication before page loads
+        (function() {
+            const adminSession = sessionStorage.getItem('zw-admin-session');
+            if (!adminSession) {
+                window.location.href = 'admin-login.html';
+            }
+        })();
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #000;
+            --secondary: #1a1a1a;
+            --accent: #cc0000;
+            --text: #fff;
+            --text-light: #ccc;
+            --bg: #0a0a0a;
+        }
+
+        @keyframes neonGlow {
+            0%, 100% {
+                text-shadow: 0 0 10px #cc0000, 0 0 20px #cc0000, 0 0 30px #990000;
+                box-shadow: 0 0 10px rgba(204, 0, 0, 0.5), 0 0 20px rgba(204, 0, 0, 0.3), inset 0 0 10px rgba(204, 0, 0, 0.1);
+            }
+            50% {
+                text-shadow: 0 0 20px #cc0000, 0 0 30px #cc0000, 0 0 40px #ff3333;
+                box-shadow: 0 0 20px rgba(204, 0, 0, 0.6), 0 0 30px rgba(204, 0, 0, 0.4), inset 0 0 15px rgba(204, 0, 0, 0.15);
+            }
+        }
+
+        @keyframes containerGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(204, 0, 0, 0.4), inset 0 0 10px rgba(204, 0, 0, 0.05);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(204, 0, 0, 0.6), inset 0 0 15px rgba(204, 0, 0, 0.1);
+            }
+        }
+
+        body {
+            font-family: 'Roboto', 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .settings-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 0;
+            animation: containerGlow 3s ease-in-out infinite;
+            box-shadow: 0 0 50px rgba(204, 0, 0, 0.3);
+        }
+
+        .settings-title {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.6);
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(204, 0, 0, 0.2);
+            color: var(--text);
+            border-radius: 0;
+            font-family: inherit;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(204, 0, 0, 0.1);
+            box-shadow: 0 0 20px rgba(204, 0, 0, 0.4), inset 0 0 10px rgba(204, 0, 0, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #cc0000, #990000);
+            color: var(--text);
+            border: 2px solid rgba(204, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(204, 0, 0, 0.7), inset 0 0 10px rgba(255, 51, 51, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(204, 0, 0, 0.3);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(204, 0, 0, 0.1);
+            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4);
+        }
+
+        .alert {
+            padding: 12px;
+            margin-bottom: 1rem;
+            border-radius: 0;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .alert-error {
+            background: rgba(204, 0, 0, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .loading {
+            display: none;
+            color: var(--accent);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-back:hover {
+            text-shadow: 0 0 10px rgba(204, 0, 0, 0.8);
+        }
+
+        .section-divider {
+            border-top: 2px solid rgba(204, 0, 0, 0.2);
+            margin: 2rem 0;
+            padding-top: 1.5rem;
+        }
+
+        .info-box {
+            background: rgba(204, 0, 0, 0.05);
+            border: 1px solid rgba(204, 0, 0, 0.2);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .settings-card {
+                padding: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="admin.html" class="nav-back">← Back to Dashboard</a>
+
+        <div class="settings-card">
+            <h2 class="settings-title">Admin Settings</h2>
+
+            <div id="message"></div>
+
+            <!-- Profile Section -->
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">Profile Information</h3>
+                
+                <div class="info-box">
+                    <strong>Username:</strong> <span id="username-display">Loading...</span><br>
+                    <strong>Member Since:</strong> <span id="joindate-display">Loading...</span>
+                </div>
+
+                <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Update Profile</button>
+                </form>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Password Section -->
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">Change Password</h3>
+
+                <form id="passwordForm" onsubmit="handlePasswordUpdate(event)">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required placeholder="Enter current password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" required placeholder="Enter new password" minlength="8">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm new password" minlength="8">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Update Password</button>
+                </form>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Backup Section -->
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">Database Backup</h3>
+
+                <p style="color: var(--text-light); margin-bottom: 1rem;">Create a backup of your database to protect your data.</p>
+
+                <button onclick="createBackup()" class="btn btn-primary" style="width: 100%;">Create Backup Now</button>
+
+                <div id="backupsList" style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">Recent Backups</h4>
+                    <div id="backupsContainer" style="max-height: 300px; overflow-y: auto; color: var(--text-light); font-size: 0.9rem;">
+                        Loading backups...
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group" style="margin-top: 2rem;">
+                <button onclick="goBack()" class="btn btn-secondary">Cancel</button>
+                <button onclick="logout()" class="btn btn-primary" style="background: linear-gradient(135deg, #990000, #660000);">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../config.js"></script>
+    <script>
+        let adminData = null;
+
+        // Load admin profile on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadAdminProfile();
+            await loadBackups();
+        });
+
+        async function loadAdminProfile() {
+            try {
+                const token = sessionStorage.getItem('zw-admin-token');
+                const profileUrl = getApiUrl('PROFILE');
+                const response = await fetch(profileUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load profile');
+                }
+
+                const data = await response.json();
+                adminData = data.admin;
+
+                // Display admin info
+                document.getElementById('username-display').textContent = adminData.username;
+                document.getElementById('joindate-display').textContent = new Date(adminData.createdAt).toLocaleDateString('ar-DZ');
+
+                // Populate form
+                document.getElementById('fullName').value = adminData.fullName || '';
+                document.getElementById('email').value = adminData.email || '';
+            } catch (error) {
+                showMessage('Error loading profile: ' + error.message, 'error');
+            }
+        }
+
+        async function handleProfileUpdate(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                const token = sessionStorage.getItem('zw-admin-token');
+                const profileUrl = getApiUrl('PROFILE');
+                const response = await fetch(profileUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ email, fullName })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Profile updated successfully!', 'success');
+                    await loadAdminProfile();
+                } else {
+                    showMessage('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating profile: ' + error.message, 'error');
+            }
+        }
+
+        async function handlePasswordUpdate(event) {
+            event.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showMessage('New passwords do not match!', 'error');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                showMessage('Password must be at least 8 characters!', 'error');
+                return;
+            }
+
+            try {
+                const token = sessionStorage.getItem('zw-admin-token');
+                const profileUrl = getApiUrl('PROFILE');
+                const response = await fetch(profileUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        currentPassword,
+                        newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Password updated successfully!', 'success');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    showMessage('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating password: ' + error.message, 'error');
+            }
+        }
+
+        async function createBackup() {
+            try {
+                const backupUrl = getApiUrl('BACKUP');
+                const response = await fetch(backupUrlken');
+                const response = await fetch(`${API_BASE}/backup`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Backup created successfully!', 'success');
+                    await loadBackups();
+                } else {
+                    showMessage('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating backup: ' + error.message, 'error');
+            }
+        }
+
+        async function loadBackups() {
+            try {
+                const backupsUrl = getApiUrl('BACKUPS');
+                const response = await fetch(backupsUrlen');
+                const response = await fetch(`${API_BASE}/backups`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const container = document.getElementById('backupsContainer');
+                    
+                    if (data.backups.length === 0) {
+                        container.innerHTML = '<p>No backups yet</p>';
+                        return;
+                    }
+
+                    let html = '<table style="width: 100%; border-collapse: collapse;">';
+                    html += '<tr style="border-bottom: 1px solid rgba(204, 0, 0, 0.2); padding: 8px; text-align: left;"><th>Date</th><th>Size</th></tr>';
+
+                    data.backups.forEach(backup => {
+                        const date = new Date(backup.timestamp).toLocaleDateString('ar-DZ');
+                        const size = (backup.size / 1024).toFixed(2) + ' KB';
+                        html += `<tr style="border-bottom: 1px solid rgba(204, 0, 0, 0.1); padding: 8px;"><td>${date}</td><td>${size}</td></tr>`;
+                    });
+
+                    html += '</table>';
+                    container.innerHTML = html;
+                } else {
+                    document.getElementById('backupsContainer').innerHTML = 'Error loading backups';
+                }
+            } catch (error) {
+                document.getElementById('backupsContainer').innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `alert alert-${type}`;
+            messageDiv.textContent = message;
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.textContent = '';
+                }, 3000);
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'admin.html';
+        }
+
+        function logout() {
+            sessionStorage.removeItem('zw-admin-session');
+            sessionStorage.removeItem('zw-admin-token');
+            window.location.href = 'admin-login.html';
+        }
+    </script>
+</body>
+</html>

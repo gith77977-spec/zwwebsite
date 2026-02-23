@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZONEWEAR - Modern Fashion for Everyone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <img src="images/logo.svg" alt="ZONEWEAR" class="logo">
+                <h1>ZONEWEAR</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active nav-home">Home</a></li>
+                <li><a href="products.html" class="nav-shop">Shop</a></li>
+                <li><a href="about.html" class="nav-about">About</a></li>
+                <li><a href="contact.html" class="nav-contact">Contact</a></li>
+                <li><a href="#" class="cart-icon">🛒 <span id="cart-count">0</span></a></li>
+                <li>
+                    <div class="lang-selector">
+                        <button class="lang-btn active" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="ar">AR</button>
+                    </div>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="videos/video.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h2>Elevate Your Style</h2>
+            <p>Discover premium clothing that defines your personality</p>
+            <a href="products.html" class="btn btn-primary">Shop Now</a>
+        </div>
+    </section>
+
+    <!-- Featured Collection -->
+    <section class="featured">
+        <div class="container">
+            <h2>Featured Collection</h2>
+            <div class="products-grid">
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-us">
+        <div class="container">
+            <h2 data-i18n="whyChooseUs">Why Choose ZONEWEAR?</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3 data-i18n="quality">Premium Quality</h3>
+                    <p data-i18n="qualityDesc">Crafted with the finest materials for durability and comfort</p>
+                </div>
+                <div class="feature">
+                    <h3 data-i18n="speed">Fast Shipping</h3>
+                    <p>Quick delivery to your doorstep within 5-7 business days</p>
+                </div>
+                <div class="feature">
+                    <h3>Authentic</h3>
+                    <p>100% authentic products with lifetime authenticity guarantee</p>
+                </div>
+                <div class="feature">
+                    <h3 data-i18n="support">Customer Support</h3>
+                    <p data-i18n="supportDesc">24/7 dedicated support team ready to help you</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="container">
+            <h2>Stay Updated</h2>
+            <p>Subscribe to get special offers and updates</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit" class="btn btn-primary">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About ZONEWEAR</h4>
+                    <p>Your destination for premium fashion and style</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ZONEWEAR. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
