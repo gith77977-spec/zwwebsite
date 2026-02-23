@@ -732,10 +732,19 @@
         let editingProductId = null;
 
         function showSection(id) {
+            console.log('Showing section:', id);
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.target.classList.add('active');
+            const section = document.getElementById(id);
+            if (section) {
+                section.classList.add('active');
+                console.log('Section activated:', id);
+            }
+            
+            // Add active class to clicked button
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             
             if (id === 'dashboard') updateDashboard();
             if (id === 'orders') updateOrdersTable();
@@ -921,12 +930,6 @@
                             console.log('✅ Second broadcast sent');
                         } catch (error) {}
                     }, 100);
-                    }, 50);
-                    
-                    // Navigate to products page after a short delay
-                    setTimeout(() => {
-                        window.location.href = 'products.html';
-                    }, 300);
                 } catch (error) {
                     console.error('Error saving product:', error);
                     alert('Error saving product: ' + error.message);
