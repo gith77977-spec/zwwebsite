@@ -891,11 +891,25 @@
                     updateDashboard();
                     closeProductModal();
                     
-                    // Offer to navigate to products page to verify
+                    // Show success message
                     const message = editingProductId ? 'Product updated successfully!' : 'Product added successfully!';
-                    if (confirm(message + '\n\nWould you like to view the updated products on the website?')) {
-                        window.open('products.html', 'products');
-                    }
+                    alert(message + '\n\nRedirecting to products page...');
+                    
+                    // Send broadcast one more time with a small delay before page navigation
+                    setTimeout(() => {
+                        try {
+                            channel.postMessage({
+                                type: 'productsUpdated',
+                                products: productsList,
+                                timestamp: Date.now()
+                            });
+                        } catch (error) {}
+                    }, 50);
+                    
+                    // Navigate to products page after a short delay
+                    setTimeout(() => {
+                        window.location.href = 'products.html';
+                    }, 300);
                 } catch (error) {
                     console.error('Error saving product:', error);
                     alert('Error saving product: ' + error.message);

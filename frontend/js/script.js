@@ -254,44 +254,43 @@ function updatePageTranslations() {
 }
 
 // ===== Cart Management =====
-// Clear old products on page refresh to ensure latest products load
-if (localStorage.getItem('zonewear-products')) {
-    try {
-        const oldProducts = JSON.parse(localStorage.getItem('zonewear-products'));
-        // If we have just 1 product, it means old data
-        if (oldProducts.length === 1 && oldProducts[0].name === 'ZW Premium Sweater White') {
-            localStorage.removeItem('zonewear-products');
-        }
-    } catch(e) {}
-}
-
 let cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
 let deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
 let products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
 let lastOrderTime = 0; // Prevent double-click orders
 
+console.log('script.js loaded - initial products from localStorage:', products.length);
+
+
 // Clean up any corrupted product data and ensure valid products
 function cleanProductsData() {
+    console.log('cleanProductsData - input products count:', products.length);
+    
     if (!Array.isArray(products)) {
+        console.warn('cleanProductsData - products is not an array, resetting to []');
         products = [];
         return;
     }
     
-    // Remove invalid products - but be less aggressive
+    // Remove only TRULY invalid products - be very lenient
+    const originalCount = products.length;
     products = products.filter(p => {
-        // Must have these core fields
-        if (!p || !p.id || !p.name) return false;
+        // Must be an object
+        if (!p || typeof p !== 'object') return false;
         
-        // Price must be a valid number (not NaN)
-        if (p.price === undefined || p.price === null || isNaN(p.price)) return false;
+        // Must have id and name
+        if (!p.id || !p.name) {
+            console.warn('Filtered out product without id or name:', p);
+            return false;
+        }
         
-        // It's valid
         return true;
     });
     
-    console.log('cleanProductsData - filtered products count:', products.length);
+    console.log('cleanProductsData - removed', originalCount - products.length, 'invalid products');
+    console.log('cleanProductsData - output products count:', products.length);
     
-    // Save cleaned data but DON'T clear if empty - let initializeDefaultProducts handle it
+    // Only save to localStorage if we actually have products
     if (products.length > 0) {
         localStorage.setItem('zonewear-products', JSON.stringify(products));
     }
@@ -299,7 +298,7 @@ function cleanProductsData() {
 
 cleanProductsData();
 
-// Initialize with default products if empty and remove duplicates
+// Initialize with default products if completely empty and remove duplicates
 function initializeDefaultProducts() {
     console.log('initializeDefaultProducts - current products count:', products.length);
     
@@ -311,15 +310,18 @@ function initializeDefaultProducts() {
         if (!seenNames.has(product.name)) {
             uniqueProducts.push(product);
             seenNames.add(product.name);
+        } else {
+            console.log('Removed duplicate product:', product.name);
         }
     });
     
     products = uniqueProducts;
-    localStorage.setItem('zonewear-products', JSON.stringify(products));
     
-    // Only add defaults if products list is completely empty
+    console.log('initializeDefaultProducts - after deduplication: products count:', products.length);
+    
+    // ONLY add defaults if products list is COMPLETELY EMPTY
     if (products.length === 0) {
-        console.log('No products found, initializing with defaults');
+        console.log('Products list is empty, initializing with 6 default products');
         
         const defaultProducts = [
             {
@@ -382,8 +384,12 @@ function initializeDefaultProducts() {
         localStorage.setItem('zonewear-products', JSON.stringify(products));
     } else {
         console.log('Products exist, keeping:', products.length);
+        // Save dedupped products back to localStorage
+        localStorage.setItem('zonewear-products', JSON.stringify(products));
     }
 }
+
+initializeDefaultProducts();
 
 // ===== IMPORTANT: Do NOT call initializeDefaultProducts() at top level ===== 
 // This is called in DOMContentLoaded instead to ensure fresh localStorage read
@@ -392,88 +398,102 @@ function initializeDefaultProducts() {
 async function loadProductsToDOM() {
     const productsGrid = document.querySelector('.products-grid');
     if (!productsGrid) {
-        console.warn('loadProductsToDOM: .products-grid not found on this page');
+        console.warn('⚠️ loadProductsToDOM: .products-grid NOT FOUND - not on products page');
         return; // Not on products page
     }
 
-    console.log('loadProductsToDOM starting with products count:', products.length);
+    console.log('📦 loadProductsToDOM STARTING');
+    console.log('📦 products array has:', products.length, 'items');
+    console.log('📦 products content:', JSON.stringify(products).substring(0, 200), '...');
 
     // Clear existing products that were dynamically added
     const existingCards = document.querySelectorAll('.product-card[data-product-id]');
     console.log('Removing existing', existingCards.length, 'product cards');
     existingCards.forEach(card => card.remove());
 
-    if (!Array.isArray(products) || products.length === 0) {
-        console.warn('loadProductsToDOM: products array is empty or invalid');
+    if (!Array.isArray(products)) {
+        console.error('❌ products is not an array:', typeof products);
+        return;
+    }
+    
+    if (products.length === 0) {
+        console.warn('⚠️ products array is EMPTY!');
         return;
     }
 
+    console.log('✓ Starting to add', products.length, 'products to DOM');
+    
     // Add products from localStorage
+    let addedCount = 0;
     for (const product of products) {
-        console.log('Processing product:', product.name, 'ID:', product.id);
-        
-        let imageSrc = 'assets/images/zw-halfzip-white.png'; // Default image
-        
-        // If image is from IndexedDB (contains 'product-'), get it from DB
-        if (product.image && product.image.startsWith('product-')) {
-            console.log('Fetching image from IndexedDB:', product.image);
-            try {
-                const imageUrl = await getImageFromDb(product.image);
-                if (imageUrl) {
-                    imageSrc = imageUrl;
-                    console.log('Image loaded from IndexedDB for:', product.name);
-                } else {
-                    console.warn('No image found in IndexedDB for:', product.image);
+        try {
+            console.log('  → Adding product:', product.name, 'ID:', product.id, 'Price:', product.price);
+            
+            let imageSrc = 'assets/images/zw-halfzip-white.png'; // Default image
+            
+            // If image is from IndexedDB (contains 'product-'), get it from DB
+            if (product.image && product.image.startsWith('product-')) {
+                console.log('    Fetching image from IndexedDB:', product.image);
+                try {
+                    const imageUrl = await getImageFromDb(product.image);
+                    if (imageUrl) {
+                        imageSrc = imageUrl;
+                        console.log('    ✓ ImageURL found');
+                    } else {
+                        console.log('    ⚠️ No image in IndexedDB, using default');
+                    }
+                } catch (error) {
+                    console.error('    ❌ Error loading from IndexedDB:', error);
                 }
-            } catch (error) {
-                console.error('Error loading image from DB:', product.image, error);
             }
-        } else {
-            console.log('Using default or static image:', product.image);
+            
+            const productHTML = `
+                <article class="product-card" data-category="${product.category}" data-product-id="${product.id}">
+                    <div class="product-top">
+                        <div class="price-badge">${product.price.toLocaleString('ar-DZ')} DA</div>
+                        <div class="product-image">
+                            <img src="${imageSrc}" alt="${product.name}" class="product-img" onerror="this.src='assets/images/zw-halfzip-white.png'">
+                        </div>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">${product.name}</h3>
+                        <p class="product-sub">${product.descAr || ''}</p>
+                        <div class="product-section">
+                            <div class="label-row">
+                                <div class="product-label">المقاسات</div>
+                                <div class="product-hint">اختر المقاس</div>
+                            </div>
+                            <div class="product-sizes">
+                                <label class="size-item"><input type="radio" name="size-${product.id}" checked><span>S</span></label>
+                                <label class="size-item"><input type="radio" name="size-${product.id}"><span>M</span></label>
+                                <label class="size-item"><input type="radio" name="size-${product.id}"><span>L</span></label>
+                                <label class="size-item"><input type="radio" name="size-${product.id}"><span>XL</span></label>
+                            </div>
+                            <div class="product-actions">
+                                <button class="cart-btn add-to-cart" data-product="${product.name}" data-price="${product.price}">إضافة للسلة</button>
+                                <button class="order-btn" data-product="${product.name}" data-price="${product.price}">طلب الآن</button>
+                            </div>
+                            <div class="product-meta">
+                                <span>متوفر الآن</span>
+                                <span>COD الجزائر</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+            
+            // Insert at the end of products grid
+            productsGrid.insertAdjacentHTML('beforeend', productHTML);
+            addedCount++;
+            console.log('    ✓ Product added to DOM');
+            
+        } catch (error) {
+            console.error('❌ Error processing product:', product.name, error);
         }
-        
-        console.log('Adding product:', product.name, 'with image:', imageSrc.substring(0, 50));
-        
-        const productHTML = `
-            <article class="product-card" data-category="${product.category}" data-product-id="${product.id}">
-                <div class="product-top">
-                    <div class="price-badge">${product.price.toLocaleString('ar-DZ')} DA</div>
-                    <div class="product-image">
-                        <img src="${imageSrc}" alt="${product.name}" class="product-img" onerror="this.src='assets/images/zw-halfzip-white.png'">
-                    </div>
-                </div>
-                <div class="product-content">
-                    <h3 class="product-title">${product.name}</h3>
-                    <p class="product-sub">${product.descAr || ''}</p>
-                    <div class="product-section">
-                        <div class="label-row">
-                            <div class="product-label">المقاسات</div>
-                            <div class="product-hint">اختر المقاس</div>
-                        </div>
-                        <div class="product-sizes">
-                            <label class="size-item"><input type="radio" name="size-${product.id}" checked><span>S</span></label>
-                            <label class="size-item"><input type="radio" name="size-${product.id}"><span>M</span></label>
-                            <label class="size-item"><input type="radio" name="size-${product.id}"><span>L</span></label>
-                            <label class="size-item"><input type="radio" name="size-${product.id}"><span>XL</span></label>
-                        </div>
-                        <div class="product-actions">
-                            <button class="cart-btn add-to-cart" data-product="${product.name}" data-price="${product.price}">إضافة للسلة</button>
-                            <button class="order-btn" data-product="${product.name}" data-price="${product.price}">طلب الآن</button>
-                        </div>
-                        <div class="product-meta">
-                            <span>متوفر الآن</span>
-                            <span>COD الجزائر</span>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        `;
-        
-        // Insert at the end of products grid
-        productsGrid.insertAdjacentHTML('beforeend', productHTML);
     }
     
-    console.log('loadProductsToDOM completed. Total products now:', document.querySelectorAll('.product-card[data-product-id]').length);
+    console.log('✅ loadProductsToDOM completed. Added', addedCount, 'out of', products.length, 'products');
+    console.log('Total product-cards in DOM now:', document.querySelectorAll('.product-card[data-product-id]').length);
 }
 
 function attachProductEventListeners() {
@@ -621,20 +641,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Setup language buttons
     setupLanguageButtons();
 
-    // Reload products from localStorage to ensure we have latest data from admin panel
+    // RELOAD ALL DATA FROM LOCALSTORAGE (don't trust the initial load)
+    console.log('🔄 DOMContentLoaded: Reloading all data from localStorage');
     try {
-        const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-        console.log('Loaded products from localStorage:', savedProducts.length, 'products');
-        products = savedProducts;
+        // Force fresh read from localStorage
+        cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
+        deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
+        const freshProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+        
+        console.log('Fresh products from localStorage:', freshProducts.length);
+        console.log('Fresh products data:', freshProducts);
+        
+        products = freshProducts; // Update the global products variable
+        console.log('Updated global products variable to:', products.length, 'products');
     } catch (error) {
-        console.error('Error loading products from localStorage:', error);
+        console.error('❌ Error reloading from localStorage:', error);
         products = [];
     }
     
+    // Clean and initialize
+    console.log('Before cleanProductsData: products =', products.length);
     cleanProductsData();
+    console.log('After cleanProductsData: products =', products.length);
     
     // Initialize defaults if needed (removes duplicates and adds defaults if empty)
     initializeDefaultProducts();
+    console.log('After initializeDefaultProducts: products =', products.length);
     
     console.log('Final products list:', products.length, 'products');
     
@@ -1030,18 +1062,30 @@ document.head.appendChild(style);
 
 // Listen for storage changes from admin panel or other sources
 // Listen for BroadcastChannel messages from admin.html (works across windows/tabs)
+// Listen for BroadcastChannel messages from admin.html (works across windows/tabs)
 channel.onmessage = (event) => {
     if (event.data.type === 'productsUpdated') {
-        console.log('BroadcastChannel message received: products updated');
+        console.log('🎯 BroadcastChannel message received: NEW products update!');
+        console.log('New products count:', event.data.products.length);
         try {
+            // Immediately update the products variable
             products = event.data.products;
-            console.log('Reloaded products from BroadcastChannel:', products.length, 'products');
-            // Immediately update UI without waiting
+            console.log('✓ Updated products variable from BroadcastChannel');
+            
+            // Save to localStorage to persist
+            localStorage.setItem('zonewear-products', JSON.stringify(products));
+            console.log('✓ Saved to localStorage');
+            
+            // Immediately re-render the products DOM
+            console.log('Reloading products on DOM...');
             loadProductsToDOM();
+            console.log('✓ DOM reloaded');
+            
             updateCartCount();
             attachProductEventListeners();
+            console.log('✓ All UI updated from BroadcastChannel message');
         } catch (error) {
-            console.error('Error reloading products from BroadcastChannel:', error);
+            console.error('❌ Error in BroadcastChannel handler:', error);
         }
     }
 };
