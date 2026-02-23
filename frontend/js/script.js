@@ -106,40 +106,32 @@ function setLanguage(lang) {
 let cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
 let deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
 let products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+// Deduplicate products immediately
+products = deduplicateProducts(products);
 let lastOrderTime = 0;
 
 console.log('Initial products from localStorage:', products.length);
 
 // Clean products data
-function cleanProductsData() {
-    console.log('cleanProductsData - input:', products.length);
-    if (!Array.isArray(products)) {
-        products = [];
-        return;
-    }
-    const originalCount = products.length;
-    
-    // First remove invalid products
-    products = products.filter(p => {
-        if (!p || typeof p !== 'object') return false;
-        if (!p.id || !p.name) return false;
-        return true;
-    });
-    
-    // Then remove duplicates by ID and name
+function deduplicateProducts(arr) {
+    if (!Array.isArray(arr)) return [];
     const seenIds = new Set();
     const seenNames = new Set();
-    products = products.filter(p => {
-        if (seenIds.has(p.id) || seenNames.has(p.name)) {
-            console.log('Removing duplicate:', p.name);
-            return false;
-        }
+    return arr.filter(p => {
+        if (!p || typeof p !== 'object') return false;
+        if (!p.id || !p.name) return false;
+        if (seenIds.has(p.id) || seenNames.has(p.name)) return false;
         seenIds.add(p.id);
         seenNames.add(p.name);
         return true;
     });
-    
-    console.log('cleanProductsData - removed', originalCount - products.length, '- output:', products.length);
+}
+
+function cleanProductsData() {
+    console.log('cleanProductsData - input:', products.length);
+    products = deduplicateProducts(products);
+    localStorage.setItem('zonewear-products', JSON.stringify(products));
+    console.log('cleanProductsData - output:', products.length);
 }
 
 // Initialize default products
