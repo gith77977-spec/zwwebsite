@@ -169,8 +169,9 @@ function initializeDefaultProducts() {
         }
     });
     products = uniqueProducts;
-    // Only load defaults if localStorage is empty AND not deleted manually
-    if (products.length === 0 && !localStorage.getItem('zonewear-products-deleted')) {
+    // Only load defaults if localStorage is completely empty (not after explicit deletion)
+    const raw = localStorage.getItem('zonewear-products');
+    if (products.length === 0 && (!raw || raw === '[]')) {
         console.log('Empty products - loading defaults');
         const defaultProducts = [
             {
