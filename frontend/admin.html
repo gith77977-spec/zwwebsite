@@ -976,6 +976,16 @@
         // Initialize
         loadInventoryTable();
         updateDashboard();
+        updateOrdersTable();  // ✅ Load orders on page load
+        
+        // Listen for localStorage changes from other tabs/windows
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'zonewear-orders') {
+                orders = JSON.parse(e.newValue) || [];
+                updateOrdersTable();  // ✅ Update orders table when orders change
+                updateDashboard();
+            }
+        });
     </script>
 </body>
 </html>

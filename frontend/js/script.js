@@ -118,11 +118,27 @@ function cleanProductsData() {
         return;
     }
     const originalCount = products.length;
+    
+    // First remove invalid products
     products = products.filter(p => {
         if (!p || typeof p !== 'object') return false;
         if (!p.id || !p.name) return false;
         return true;
     });
+    
+    // Then remove duplicates by ID and name
+    const seenIds = new Set();
+    const seenNames = new Set();
+    products = products.filter(p => {
+        if (seenIds.has(p.id) || seenNames.has(p.name)) {
+            console.log('Removing duplicate:', p.name);
+            return false;
+        }
+        seenIds.add(p.id);
+        seenNames.add(p.name);
+        return true;
+    });
+    
     console.log('cleanProductsData - removed', originalCount - products.length, '- output:', products.length);
 }
 
@@ -458,6 +474,8 @@ function handleCheckout() {
 }
 
 function showDeliveryForm() {
+    closeCartModal();  // ✅ Close cart modal before opening delivery form
+    
     let modal = document.getElementById('delivery-modal');
     if (!modal) {
         modal = document.createElement('div');

@@ -487,6 +487,7 @@ p {
     align-items: center;
     justify-content: center;
     padding: 12px;
+    text-align: center;
 }
 
 .product-img {
@@ -1053,7 +1054,11 @@ p {
     }
     
     .product-image {
-        height: 300px;
+        aspect-ratio: 4/3;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .sizes {
