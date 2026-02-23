@@ -881,6 +881,8 @@
 
                     // Save directly to localStorage
                     localStorage.setItem('zonewear-products', JSON.stringify(productsList));
+                    console.log('✅ Saved to localStorage:', productsList.length, 'products');
+                    console.log('✅ Product details:', product);
                     
                     // Update the local products variable in admin.html
                     products = productsList;
@@ -892,14 +894,13 @@
                             products: productsList,
                             timestamp: Date.now()
                         });
-                        console.log('Broadcast sent via BroadcastChannel:', productsList.length, 'products');
+                        console.log('✅ Broadcast sent via BroadcastChannel:', productsList.length, 'products');
                     } catch (error) {
                         console.error('Error broadcasting:', error);
                     }
                     
-                    console.log('Product saved:', product);
-                    console.log('All products in localStorage:', productsList);
-                    console.log('Updated products variable:', products);
+                    console.log('✅ Product saved:', product);
+                    console.log('✅ All products in localStorage:', productsList);
                     
                     loadInventoryTable();
                     updateDashboard();
@@ -907,9 +908,9 @@
                     
                     // Show success message
                     const message = editingProductId ? 'Product updated successfully!' : 'Product added successfully!';
-                    alert(message + '\n\nRedirecting to products page...');
+                    alert(message + '\n\n✅ Saved to database!');
                     
-                    // Send broadcast one more time with a small delay before page navigation
+                    // Send broadcast one more time with a small delay
                     setTimeout(() => {
                         try {
                             channel.postMessage({
@@ -917,7 +918,9 @@
                                 products: productsList,
                                 timestamp: Date.now()
                             });
+                            console.log('✅ Second broadcast sent');
                         } catch (error) {}
+                    }, 100);
                     }, 50);
                     
                     // Navigate to products page after a short delay

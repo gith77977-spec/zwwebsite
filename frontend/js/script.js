@@ -637,12 +637,27 @@ channel.onmessage = (event) => {
 setInterval(() => {
     const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
     if (savedProducts.length !== products.length || JSON.stringify(savedProducts) !== JSON.stringify(products)) {
-        console.log('📦 localStorage changed, reloading products');
+        console.log('📦 localStorage changed, reloading products:', savedProducts.length, 'found');
         products = deduplicateProducts(savedProducts);
         loadProductsToDOM();
         attachProductEventListeners();
     }
 }, 2000);
+
+// Storage event listener (for updates from other tabs)
+window.addEventListener('storage', (e) => {
+    if (e.key === 'zonewear-products') {
+        console.log('📦 Storage event: Products updated from another tab');
+        try {
+            products = JSON.parse(e.newValue) || [];
+            products = deduplicateProducts(products);
+            loadProductsToDOM();
+            attachProductEventListeners();
+        } catch (error) {
+            console.error('Error in storage event:', error);
+        }
+    }
+});
 
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async function() {
