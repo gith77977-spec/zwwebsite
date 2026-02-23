@@ -996,5 +996,19 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Listen for storage changes from admin panel or other sources
+window.addEventListener('storage', function(e) {
+    if (e.key === 'zonewear-products') {
+        console.log('Storage event: zonewear-products changed, reloading products');
+        try {
+            products = JSON.parse(e.newValue) || [];
+            console.log('Reloaded products from storage event:', products.length);
+            loadProductsToDOM();
+        } catch (error) {
+            console.error('Error reloading products from storage:', error);
+        }
+    }
+});
+
 // ===== Setup Language Buttons (Fallback) =====
 setupLanguageButtons();

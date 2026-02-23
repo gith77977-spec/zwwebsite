@@ -862,10 +862,23 @@
                     // Save directly to localStorage
                     localStorage.setItem('zonewear-products', JSON.stringify(productsList));
                     
+                    // Update the local products variable in admin.html
+                    products = productsList;
+                    
+                    // Broadcast change event for other windows/tabs listening to localStorage changes
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: 'zonewear-products',
+                        newValue: JSON.stringify(productsList),
+                        oldValue: JSON.stringify(oldList || []),
+                        storageArea: localStorage
+                    }));
+                    
                     console.log('Product saved:', product);
                     console.log('All products in localStorage:', productsList);
+                    console.log('Updated products variable:', products);
                     
                     loadInventoryTable();
+                    updateDashboard();
                     closeProductModal();
                     alert(editingProductId ? 'Product updated!' : 'Product added successfully!');
                 } catch (error) {
