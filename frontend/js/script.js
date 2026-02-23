@@ -1,16 +1,20 @@
 // Initialize IndexedDB for images
 let db;
-const dbRequest = indexedDB.open('ZoneWearDB', 1);
+const dbRequest = indexedDB.open('ZoneWearDB', 2);
 dbRequest.onerror = () => console.log('Database failed to open');
 dbRequest.onsuccess = () => {
     db = dbRequest.result;
+    console.log('IndexedDB opened successfully');
 };
 dbRequest.onupgradeneeded = (e) => {
     const database = e.target.result;
-    if (!database.objectStoreNames.contains('images')) {
-        // Create object store with keyPath
-        database.createObjectStore('images', { keyPath: 'id' });
+    // Delete old object store if it exists without keyPath
+    if (database.objectStoreNames.contains('images')) {
+        database.deleteObjectStore('images');
     }
+    // Create new object store with proper keyPath
+    database.createObjectStore('images', { keyPath: 'id', autoIncrement: false });
+    console.log('IndexedDB upgraded with images store');
 };
 
 // Get image from IndexedDB and return URL
