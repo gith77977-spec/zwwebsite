@@ -649,13 +649,16 @@
     </div>
 
     <script>
+        // Initialize BroadcastChannel for cross-window communication
+        const channel = new BroadcastChannel('zonewear-products');
+        
         // Initialize IndexedDB for images
         let db;
         const request = indexedDB.open('ZoneWearDB', 2);
         request.onerror = () => console.log('Database failed to open');
         request.onsuccess = () => {
             db = request.result;
-            console.log('IndexedDB opened successfully');
+            console.log('IndexedDB opened successfully in admin.html');
         };
         request.onupgradeneeded = (e) => {
             const database = e.target.result;
@@ -868,19 +871,17 @@
                     // Update the local products variable in admin.html
                     products = productsList;
                     
-                    // Broadcast change event for other windows/tabs (and also within this window)
-                    // Use custom event for same-window detection, StorageEvent for cross-window
-                    window.dispatchEvent(new CustomEvent('productsUpdated', {
-                        detail: { products: productsList }
-                    }));
-                    
-                    // Also fire StorageEvent for cross-window listening
-                    window.dispatchEvent(new StorageEvent('storage', {
-                        key: 'zonewear-products',
-                        newValue: JSON.stringify(productsList),
-                        oldValue: oldProductsValue,
-                        storageArea: localStorage
-                    }));
+                    // Broadcast via BroadcastChannel to ALL windows/tabs (including products.html)
+                    try {
+                        channel.postMessage({
+                            type: 'productsUpdated',
+                            products: productsList,
+                            timestamp: Date.now()
+                        });
+                        console.log('Broadcast sent via BroadcastChannel:', productsList.length, 'products');
+                    } catch (error) {
+                        console.error('Error broadcasting:', error);
+                    }
                     
                     console.log('Product saved:', product);
                     console.log('All products in localStorage:', productsList);

@@ -1,9 +1,14 @@
+// Initialize BroadcastChannel for cross-window communication
+const channel = new BroadcastChannel('zonewear-products');
+
 // Initialize IndexedDB for images
 let db;
+let dbReady = false; // Flag to track if DB is ready
 const dbRequest = indexedDB.open('ZoneWearDB', 2);
 dbRequest.onerror = () => console.log('Database failed to open');
 dbRequest.onsuccess = () => {
     db = dbRequest.result;
+    dbReady = true; // Mark DB as ready
     console.log('IndexedDB opened successfully');
 };
 dbRequest.onupgradeneeded = (e) => {
@@ -592,8 +597,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         modal.style.display = 'none';
     });
     
-    // Wait a moment for IndexedDB to initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for IndexedDB to initialize (up to 2 seconds)
+    let waitCount = 0;
+    while (!dbReady && waitCount < 20) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        waitCount++;
+    }
+    console.log('IndexedDB ready status:', dbReady, 'after', waitCount * 100, 'ms');
     
     // Set initial language
     setLanguage(currentLang);
@@ -1006,6 +1016,24 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Listen for storage changes from admin panel or other sources
+// Listen for BroadcastChannel messages from admin.html (works across windows/tabs)
+channel.onmessage = (event) => {
+    if (event.data.type === 'productsUpdated') {
+        console.log('BroadcastChannel message received: products updated');
+        try {
+            products = event.data.products;
+            console.log('Reloaded products from BroadcastChannel:', products.length, 'products');
+            // Immediately update UI without waiting
+            loadProductsToDOM();
+            updateCartCount();
+            attachProductEventListeners();
+        } catch (error) {
+            console.error('Error reloading products from BroadcastChannel:', error);
+        }
+    }
+};
+
+// Also listen for localStorage changes (for old browsers or fallback)
 window.addEventListener('storage', function(e) {
     if (e.key === 'zonewear-products') {
         console.log('Storage event: zonewear-products changed, reloading products');
@@ -1015,20 +1043,6 @@ window.addEventListener('storage', function(e) {
             loadProductsToDOM();
         } catch (error) {
             console.error('Error reloading products from storage:', error);
-        }
-    }
-});
-
-// Also listen for custom events from within the same window (e.g., from admin panel in same tab)
-window.addEventListener('productsUpdated', function(e) {
-    if (e.detail && e.detail.products) {
-        console.log('Custom event: productsUpdated fired, reloading products');
-        try {
-            products = e.detail.products;
-            console.log('Reloaded products from custom event:', products.length);
-            loadProductsToDOM();
-        } catch (error) {
-            console.error('Error reloading products from custom event:', error);
         }
     }
 });
