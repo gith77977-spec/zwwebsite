@@ -8,8 +8,8 @@ dbRequest.onsuccess = () => {
 dbRequest.onupgradeneeded = (e) => {
     const database = e.target.result;
     if (!database.objectStoreNames.contains('images')) {
-        // Use 'id' as keyPath but allow string values
-        database.createObjectStore('images');
+        // Use 'name' as keyPath for images
+        database.createObjectStore('images', { keyPath: 'name' });
     }
 };
 
@@ -34,6 +34,25 @@ function getImageFromDb(imageName) {
             request.onerror = () => resolve(null);
         } catch(e) {
             resolve(null);
+        }
+    });
+}
+
+// Save image to IndexedDB (fix: use keyPath 'name')
+function saveImageToDb(imageName, imageBlob) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject('DB not initialized');
+            return;
+        }
+        try {
+            const transaction = db.transaction(['images'], 'readwrite');
+            const objectStore = transaction.objectStore('images');
+            const request = objectStore.put({ name: imageName, blob: imageBlob });
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => reject(e);
+        } catch (e) {
+            reject(e);
         }
     });
 }
