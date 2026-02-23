@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 require('dotenv').config();
 
 const {
@@ -34,6 +35,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+// Serve static files from frontend directory
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Authentication Middleware
 function verifyToken(req, res, next) {
@@ -378,9 +382,18 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 404 Handler
+// Fallback to index.html for non-API routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
+// 404 Handler - send 404 JSON for API routes only
 app.use((req, res) => {
-    res.status(404).json({ error: 'Route not found' });
+    if (req.path.startsWith('/api')) {
+        res.status(404).json({ error: 'Route not found' });
+    } else {
+        res.sendFile(path.join(__dirname, '../frontend/index.html'));
+    }
 });
 
 // Start server
