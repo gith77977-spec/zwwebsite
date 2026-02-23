@@ -659,23 +659,34 @@
         request.onupgradeneeded = (e) => {
             const database = e.target.result;
             if (!database.objectStoreNames.contains('images')) {
-                database.createObjectStore('images');
+                database.createObjectStore('images', { keyPath: 'id' });
             }
         };
 
         // Save image to IndexedDB
         function saveImageToDb(imageBlob, imageName) {
             return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['images'], 'readwrite');
-                const objectStore = transaction.objectStore('images');
-                const imageData = {
-                    id: imageName,
-                    blob: imageBlob,
-                    timestamp: Date.now()
-                };
-                const request = objectStore.put(imageData);
-                request.onsuccess = () => resolve(imageName);
-                request.onerror = () => reject(request.error);
+                try {
+                    const transaction = db.transaction(['images'], 'readwrite');
+                    const objectStore = transaction.objectStore('images');
+                    const imageData = {
+                        id: imageName,
+                        blob: imageBlob,
+                        timestamp: Date.now()
+                    };
+                    const request = objectStore.put(imageData);
+                    request.onsuccess = () => {
+                        console.log('Image saved to IndexedDB:', imageName);
+                        resolve(imageName);
+                    };
+                    request.onerror = () => {
+                        console.error('Error saving image:', request.error);
+                        reject(request.error);
+                    };
+                } catch (error) {
+                    console.error('Error in saveImageToDb:', error);
+                    reject(error);
+                }
             });
         }
 
