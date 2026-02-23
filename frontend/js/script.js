@@ -633,6 +633,17 @@ channel.onmessage = (event) => {
     }
 };
 
+// Fallback: Check localStorage every 2 seconds for updates
+setInterval(() => {
+    const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+    if (savedProducts.length !== products.length || JSON.stringify(savedProducts) !== JSON.stringify(products)) {
+        console.log('📦 localStorage changed, reloading products');
+        products = deduplicateProducts(savedProducts);
+        loadProductsToDOM();
+        attachProductEventListeners();
+    }
+}, 2000);
+
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOMContentLoaded: Starting page initialization');
