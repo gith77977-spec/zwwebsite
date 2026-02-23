@@ -1,28 +1,28 @@
+console.log('✓ script.js loaded successfully');
+
 // Initialize BroadcastChannel for cross-window communication
 const channel = new BroadcastChannel('zonewear-products');
 
 // Initialize IndexedDB for images
 let db;
-let dbReady = false; // Flag to track if DB is ready
+let dbReady = false;
 const dbRequest = indexedDB.open('ZoneWearDB', 2);
 dbRequest.onerror = () => console.log('Database failed to open');
 dbRequest.onsuccess = () => {
     db = dbRequest.result;
-    dbReady = true; // Mark DB as ready
+    dbReady = true;
     console.log('IndexedDB opened successfully');
 };
 dbRequest.onupgradeneeded = (e) => {
     const database = e.target.result;
-    // Delete old object store if it exists without keyPath
     if (database.objectStoreNames.contains('images')) {
         database.deleteObjectStore('images');
     }
-    // Create new object store with proper keyPath
     database.createObjectStore('images', { keyPath: 'id', autoIncrement: false });
     console.log('IndexedDB upgraded with images store');
 };
 
-// Get image from IndexedDB and return URL
+// Get image from IndexedDB
 function getImageFromDb(imageName) {
     return new Promise((resolve) => {
         if (!db) {
@@ -51,278 +51,95 @@ function getImageFromDb(imageName) {
     });
 }
 
-// ===== Language & Translations =====
+// Language setup
 let currentLang = localStorage.getItem('zonewear-lang') || 'en';
-
 const translations = {
     en: {
-        home: 'Home',
-        shop: 'Shop',
-        about: 'About',
-        contact: 'Contact',
-        addToCart: 'Add to Cart',
-        shopNow: 'Shop Now',
         selectSize: 'Please select a size',
-        emptyCart: 'Your cart is empty!',
+        addToCart: 'added to cart',
         cartTitle: 'Shopping Cart',
-        size: 'Size',
+        emptyCart: 'Your cart is empty',
         remove: 'Remove',
         total: 'Total',
-        checkout: 'Proceed to Checkout',
+        size: 'Size',
+        checkout: 'Checkout',
         deliveryInfo: 'Delivery Information',
         fullName: 'Full Name',
-        phone: 'Phone Number',
-        state: 'State/Province',
-        completeOrder: 'Complete Order',
+        phone: 'Phone',
+        state: 'State',
         cancel: 'Cancel',
-        orderSuccess: '✓ Order completed successfully!',
-        price: 'Price',
-        searchNoResults: 'No products found',
-        elevateYourStyle: 'Elevate Your Style',
-        discoverPremium: 'Discover premium clothing that defines your personality',
-        featuredCollection: 'Featured Collection',
-        ourCollection: 'Our Collection',
-        sizes: 'Sizes',
-        chooseSize: 'Choose Size',
-        addNow: 'Add Now',
-        orderNow: 'Order Now',
-        availableNow: 'Available Now',
-        codAlgeria: 'COD Algeria',
-        comingSoon: 'Coming Soon',
-        whyChooseUs: 'Why Choose Us',
-        quality: 'Quality',
-        qualityDesc: 'Premium materials and craftsmanship',
-        speed: 'Speed',
-        speedDesc: 'Fast shipping across Algeria',
-        support: 'Support',
-        supportDesc: '24/7 customer support ready to help'
+        completeOrder: 'Complete Order',
+        orderSuccess: 'Order placed successfully!',
+        searchNoResults: 'No products found'
     },
     ar: {
-        home: 'الرئيسية',
-        shop: 'المتجر',
-        about: 'حول',
-        contact: 'اتصل بنا',
-        addToCart: 'إضافة للسلة',
-        shopNow: 'تسوق الآن',
-        selectSize: 'الرجاء اختيار المقاس',
-        emptyCart: 'سلتك فارغة!',
-        cartTitle: '🛒 سلة المشتريات',
-        size: 'المقاس',
+        selectSize: 'اختر المقاس',
+        addToCart: 'تمت إضافته للسلة',
+        cartTitle: 'سلة التسوق',
+        emptyCart: 'السلة فارغة',
         remove: 'حذف',
         total: 'الإجمالي',
-        checkout: 'متابعة الدفع',
+        size: 'المقاس',
+        checkout: 'الدفع',
         deliveryInfo: 'معلومات التوصيل',
         fullName: 'الاسم الكامل',
         phone: 'رقم الهاتف',
         state: 'الولاية',
-        completeOrder: 'إتمام الطلب',
         cancel: 'إلغاء',
-        orderSuccess: 'تم إتمام الطلب بنجاح!',
-        price: 'السعر',
-        searchNoResults: 'لم يتم العثور على منتجات',
-        elevateYourStyle: 'ارفع أسلوبك',
-        discoverPremium: 'اكتشف الملابس الفاخرة التي تحدد شخصيتك',
-        featuredCollection: 'المجموعة المميزة',
-        ourCollection: 'مجموعتنا',
-        sizes: 'المقاسات',
-        chooseSize: 'اختر المقاس',
-        addNow: 'أضف الآن',
-        orderNow: 'اطلب الآن',
-        availableNow: 'متوفر الآن',
-        codAlgeria: 'الدفع عند الاستلام',
-        comingSoon: 'قريباً',
-        whyChooseUs: 'لماذا تختار ناً',
-        quality: 'الجودة',
-        qualityDesc: 'مواد فاخرة وحرفية عالية',
-        speed: 'السرعة',
-        speedDesc: 'شحن سريع في جميع أنحاء الجزائر',
-        support: 'الدعم',
-        supportDesc: 'دعم عملاء 24/7 جاهز للمساعدة'
+        completeOrder: 'إكمال الطلب',
+        orderSuccess: 'تم الطلب بنجاح!',
+        searchNoResults: 'لم يتم العثور على منتجات'
     }
 };
 
-// Algerian States
-const algierianStates = [
-    'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna',
-    'Béjaia', 'Biskra', 'Béchar', 'Blida', 'Bouira',
-    'Tamanrasset', 'Tébessa', 'Tlemcen', 'Tiaret', 'Tizi Ouzou',
-    'Alger', 'Djelfa', 'Jijel', 'Sétif', 'Saïda',
-    'Skikda', 'Sidi Bel Abbès', 'Annaba', 'Guelma', 'Constantine',
-    'Médéa', 'Mostaganem', 'M\'Sila', 'Mascara', 'Ouargla',
-    'Oran', 'El Bayadh', 'El Oued', 'Khenchela', 'Souk Ahras',
-    'Tipaza', 'Mila', 'Aïn Defla', 'Naâma', 'Aïn Témouchent',
-    'Ghardaïa', 'Relizane', 'El Menia', 'Bordj Baji Mokhtar', 'Ouled Djellal',
-    'Beni Abbès', 'Tindouf', 'Tissemsilt', 'El Meghaier', 'El Menia'
-];
-
 function t(key) {
-    return translations[currentLang]?.[key] || translations.en[key] || key;
+    return translations[currentLang]?.[key] || key;
 }
 
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('zonewear-lang', lang);
-    document.body.setAttribute('data-lang', lang);
-    
-    // Update language buttons
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
-    });
-    
-    // Update all translatable elements
-    updatePageTranslations();
+    console.log('Language set to:', lang);
 }
 
-function updatePageTranslations() {
-    // Update nav items
-    const navHome = document.querySelector('.nav-home');
-    const navShop = document.querySelector('.nav-shop');
-    const navAbout = document.querySelector('.nav-about');
-    const navContact = document.querySelector('.nav-contact');
-    
-    if (navHome) navHome.textContent = t('home');
-    if (navShop) navShop.textContent = t('shop');
-    if (navAbout) navAbout.textContent = t('about');
-    if (navContact) navContact.textContent = t('contact');
-    
-    // Update all translatable elements with data-i18n attribute
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        el.textContent = t(el.getAttribute('data-i18n'));
-    });
-    
-    // Update hero text
-    const heroH2 = document.querySelector('.hero-content h2');
-    if (heroH2) heroH2.textContent = t('elevateYourStyle');
-    const heroP = document.querySelector('.hero-content p');
-    if (heroP) heroP.textContent = t('discoverPremium');
-    
-    // Update shop now button
-    const shopNowBtn = document.querySelector('.hero-content .btn-primary');
-    if (shopNowBtn) shopNowBtn.textContent = t('shopNow');
-    
-    // Update Featured Collection title
-    const featuredTitle = document.querySelector('.featured h2');
-    if (featuredTitle) featuredTitle.textContent = t('featuredCollection');
-    
-    // Update size selector labels
-    document.querySelectorAll('.product-label').forEach(label => {
-        if (label.textContent.includes('المقاس') || label.textContent.includes('Size')) {
-            label.textContent = t('sizes');
-        }
-    });
-    
-    // Update product action buttons
-    document.querySelectorAll('.cart-btn').forEach(btn => {
-        if (btn.textContent.includes('إضافة') || btn.textContent.includes('Add')) {
-            btn.textContent = t('addToCart');
-        }
-    });
-    
-    document.querySelectorAll('.order-btn').forEach(btn => {
-        if (btn.textContent.includes('طلب') || btn.textContent.includes('Order')) {
-            btn.textContent = t('orderNow');
-        }
-    });
-    
-    // Update product meta text
-    document.querySelectorAll('.product-meta').forEach(meta => {
-        const spans = meta.querySelectorAll('span');
-        spans.forEach(span => {
-            if (span.textContent.includes('متوفر') || span.textContent.includes('Available')) {
-                span.textContent = t('availableNow');
-            }
-            if (span.textContent.includes('COD') || span.textContent.includes('الدفع')) {
-                span.textContent = t('codAlgeria');
-            }
-        });
-    });
-    
-    // Update cart modal elements
-    const cartTitle = document.querySelector('.cart-header h2');
-    if (cartTitle) cartTitle.textContent = t('cartTitle');
-    
-    // Update checkout button
-    const checkoutBtn = document.querySelector('.checkout-btn');
-    if (checkoutBtn) checkoutBtn.textContent = t('checkout');
-    
-    // Update all button texts that need translation
-    document.querySelectorAll('button').forEach(btn => {
-        const text = btn.textContent.trim();
-        if (text === 'Remove' || text === 'حذف') btn.textContent = t('remove');
-        if (text === 'Cancel' || text === 'إلغاء') btn.textContent = t('cancel');
-    });
-}
-
-// ===== Cart Management =====
+// Data initialization
 let cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
 let deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
 let products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-let lastOrderTime = 0; // Prevent double-click orders
+let lastOrderTime = 0;
 
-console.log('script.js loaded - initial products from localStorage:', products.length);
+console.log('Initial products from localStorage:', products.length);
 
-
-// Clean up any corrupted product data and ensure valid products
+// Clean products data
 function cleanProductsData() {
-    console.log('cleanProductsData - input products count:', products.length);
-    
+    console.log('cleanProductsData - input:', products.length);
     if (!Array.isArray(products)) {
-        console.warn('cleanProductsData - products is not an array, resetting to []');
         products = [];
         return;
     }
-    
-    // Remove only TRULY invalid products - be very lenient
     const originalCount = products.length;
     products = products.filter(p => {
-        // Must be an object
         if (!p || typeof p !== 'object') return false;
-        
-        // Must have id and name
-        if (!p.id || !p.name) {
-            console.warn('Filtered out product without id or name:', p);
-            return false;
-        }
-        
+        if (!p.id || !p.name) return false;
         return true;
     });
-    
-    console.log('cleanProductsData - removed', originalCount - products.length, 'invalid products');
-    console.log('cleanProductsData - output products count:', products.length);
-    
-    // Only save to localStorage if we actually have products
-    if (products.length > 0) {
-        localStorage.setItem('zonewear-products', JSON.stringify(products));
-    }
+    console.log('cleanProductsData - removed', originalCount - products.length, '- output:', products.length);
 }
 
-cleanProductsData();
-
-// Initialize with default products if completely empty and remove duplicates
+// Initialize default products
 function initializeDefaultProducts() {
-    console.log('initializeDefaultProducts - current products count:', products.length);
-    
-    // Remove duplicates based on product name
+    console.log('initializeDefaultProducts - current count:', products.length);
     const uniqueProducts = [];
     const seenNames = new Set();
-    
     products.forEach(product => {
         if (!seenNames.has(product.name)) {
             uniqueProducts.push(product);
             seenNames.add(product.name);
-        } else {
-            console.log('Removed duplicate product:', product.name);
         }
     });
-    
     products = uniqueProducts;
-    
-    console.log('initializeDefaultProducts - after deduplication: products count:', products.length);
-    
-    // ONLY add defaults if products list is COMPLETELY EMPTY
     if (products.length === 0) {
-        console.log('Products list is empty, initializing with 6 default products');
-        
+        console.log('Empty products - loading defaults');
         const defaultProducts = [
             {
                 id: 1,
@@ -379,72 +196,37 @@ function initializeDefaultProducts() {
                 image: 'assets/images/zw-hoodie-black.png'
             }
         ];
-        
         products = defaultProducts;
         localStorage.setItem('zonewear-products', JSON.stringify(products));
-    } else {
-        console.log('Products exist, keeping:', products.length);
-        // Save dedupped products back to localStorage
-        localStorage.setItem('zonewear-products', JSON.stringify(products));
     }
+    localStorage.setItem('zonewear-products', JSON.stringify(products));
+    console.log('initializeDefaultProducts - final count:', products.length);
 }
 
-initializeDefaultProducts();
-
-// ===== IMPORTANT: Do NOT call initializeDefaultProducts() at top level ===== 
-// This is called in DOMContentLoaded instead to ensure fresh localStorage read
-
-// Function to render products from localStorage to the page
+// Load products to DOM
 async function loadProductsToDOM() {
     const productsGrid = document.querySelector('.products-grid');
     if (!productsGrid) {
-        console.warn('⚠️ loadProductsToDOM: .products-grid NOT FOUND - not on products page');
-        return; // Not on products page
+        console.warn('products-grid not found');
+        return;
     }
-
-    console.log('📦 loadProductsToDOM STARTING');
-    console.log('📦 products array has:', products.length, 'items');
-    console.log('📦 products content:', JSON.stringify(products).substring(0, 200), '...');
-
-    // Clear existing products that were dynamically added
+    console.log('loadProductsToDOM: Adding', products.length, 'products');
+    
     const existingCards = document.querySelectorAll('.product-card[data-product-id]');
-    console.log('Removing existing', existingCards.length, 'product cards');
     existingCards.forEach(card => card.remove());
-
-    if (!Array.isArray(products)) {
-        console.error('❌ products is not an array:', typeof products);
+    
+    if (!Array.isArray(products) || products.length === 0) {
+        console.warn('No products to display');
         return;
     }
     
-    if (products.length === 0) {
-        console.warn('⚠️ products array is EMPTY!');
-        return;
-    }
-
-    console.log('✓ Starting to add', products.length, 'products to DOM');
-    
-    // Add products from localStorage
     let addedCount = 0;
     for (const product of products) {
         try {
-            console.log('  → Adding product:', product.name, 'ID:', product.id, 'Price:', product.price);
-            
-            let imageSrc = 'assets/images/zw-halfzip-white.png'; // Default image
-            
-            // If image is from IndexedDB (contains 'product-'), get it from DB
+            let imageSrc = 'assets/images/zw-halfzip-white.png';
             if (product.image && product.image.startsWith('product-')) {
-                console.log('    Fetching image from IndexedDB:', product.image);
-                try {
-                    const imageUrl = await getImageFromDb(product.image);
-                    if (imageUrl) {
-                        imageSrc = imageUrl;
-                        console.log('    ✓ ImageURL found');
-                    } else {
-                        console.log('    ⚠️ No image in IndexedDB, using default');
-                    }
-                } catch (error) {
-                    console.error('    ❌ Error loading from IndexedDB:', error);
-                }
+                const imageUrl = await getImageFromDb(product.image);
+                if (imageUrl) imageSrc = imageUrl;
             }
             
             const productHTML = `
@@ -481,77 +263,57 @@ async function loadProductsToDOM() {
                     </div>
                 </article>
             `;
-            
-            // Insert at the end of products grid
             productsGrid.insertAdjacentHTML('beforeend', productHTML);
             addedCount++;
-            console.log('    ✓ Product added to DOM');
-            
         } catch (error) {
-            console.error('❌ Error processing product:', product.name, error);
+            console.error('Error adding product:', error);
         }
     }
-    
-    console.log('✅ loadProductsToDOM completed. Added', addedCount, 'out of', products.length, 'products');
-    console.log('Total product-cards in DOM now:', document.querySelectorAll('.product-card[data-product-id]').length);
+    console.log('✓ loadProductsToDOM complete:', addedCount, 'products added');
 }
 
+// Attach event listeners
 function attachProductEventListeners() {
-    try {
-        // Add fresh event listeners to all add-to-cart buttons
-        const addToCartButtons = document.querySelectorAll('.add-to-cart');
-        console.log('Attaching listeners to', addToCartButtons.length, 'add-to-cart buttons');
-        addToCartButtons.forEach((button, index) => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const productCard = this.closest('.product-card');
-                const checkedRadio = productCard.querySelector('.product-sizes input[type="radio"]:checked');
-                const selectedSize = checkedRadio ? checkedRadio.nextElementSibling.textContent : null;
-                
-                const productName = this.getAttribute('data-product');
-                const price = this.getAttribute('data-price');
-                console.log('Add to cart clicked:', productName, 'Size:', selectedSize);
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productCard = this.closest('.product-card');
+            const checkedRadio = productCard.querySelector('.product-sizes input[type="radio"]:checked');
+            const selectedSize = checkedRadio ? checkedRadio.nextElementSibling.textContent : null;
+            const productName = this.getAttribute('data-product');
+            const price = this.getAttribute('data-price');
+            addToCart(productName, price, selectedSize);
+        });
+    });
+    
+    const orderBtns = document.querySelectorAll('.order-btn');
+    orderBtns.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const now = Date.now();
+            if (now - lastOrderTime < 1000) return;
+            lastOrderTime = now;
+            
+            const productCard = this.closest('.product-card');
+            const checkedRadio = productCard.querySelector('.product-sizes input[type="radio"]:checked');
+            const selectedSize = checkedRadio ? checkedRadio.nextElementSibling.textContent : null;
+            const productName = this.getAttribute('data-product') || productCard.querySelector('.product-title')?.textContent || 'Product';
+            const price = this.getAttribute('data-price') || productCard.querySelector('.price-badge')?.textContent?.replace(/[^0-9]/g, '');
+            
+            if (selectedSize) {
                 addToCart(productName, price, selectedSize);
-            });
+                setTimeout(() => showDeliveryForm(), 500);
+            } else {
+                showNotification(t('selectSize'));
+            }
         });
-        
-        // Order button functionality
-        const orderBtns = document.querySelectorAll('.order-btn');
-        console.log('Attaching listeners to', orderBtns.length, 'order buttons');
-        orderBtns.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                // Prevent rapid double-clicks
-                const now = Date.now();
-                if (now - lastOrderTime < 1000) {
-                    return;
-                }
-                lastOrderTime = now;
-                
-                const productCard = this.closest('.product-card');
-                const checkedRadio = productCard.querySelector('.product-sizes input[type="radio"]:checked');
-                const selectedSize = checkedRadio ? checkedRadio.nextElementSibling.textContent : null;
-                
-                const productName = this.getAttribute('data-product') || productCard.querySelector('.product-title')?.textContent || 'Product';
-                const price = this.getAttribute('data-price') || productCard.querySelector('.price-badge')?.textContent?.replace(/[^0-9]/g, '');
-                
-                if (selectedSize) {
-                    console.log('Order clicked:', productName, 'Size:', selectedSize);
-                    addToCart(productName, price, selectedSize);
-                    setTimeout(() => showDeliveryForm(), 500);
-                } else {
-                    showNotification(t('selectSize'));
-                }
-            });
-        });
-        console.log('attachProductEventListeners completed successfully');
-    } catch (error) {
-        console.error('Error in attachProductEventListeners:', error);
-    }
+    });
 }
 
 function updateCartCount() {
-    document.getElementById('cart-count').textContent = cart.length;
+    const cartCountEl = document.getElementById('cart-count');
+    if (cartCountEl) cartCountEl.textContent = cart.length;
     localStorage.setItem('zonewear-cart', JSON.stringify(cart));
 }
 
@@ -560,8 +322,6 @@ function addToCart(productName, price, size) {
         showNotification(t('selectSize'));
         return;
     }
-    
-    // Decrease product stock in localStorage
     const productObj = products.find(p => p.name === productName);
     if (productObj && productObj.stock > 0) {
         productObj.stock -= 1;
@@ -570,7 +330,6 @@ function addToCart(productName, price, size) {
         showNotification('منتج غير متوفر');
         return;
     }
-    
     const product = {
         id: Date.now(),
         name: productName,
@@ -601,13 +360,9 @@ function showNotification(message) {
     `;
     notification.textContent = message;
     document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
+    setTimeout(() => notification.remove(), 3000);
 }
 
-// ===== Language Button Setup (Global) =====
 function setupLanguageButtons() {
     const langBtns = document.querySelectorAll('.lang-btn');
     langBtns.forEach(btn => {
@@ -619,128 +374,11 @@ function setupLanguageButtons() {
     });
 }
 
-// ===== Mobile Navigation =====
-document.addEventListener('DOMContentLoaded', async function() {
-    // Close any open modals when page loads
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.style.display = 'none';
-    });
-    
-    // Wait for IndexedDB to initialize (up to 2 seconds)
-    let waitCount = 0;
-    while (!dbReady && waitCount < 20) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        waitCount++;
-    }
-    console.log('IndexedDB ready status:', dbReady, 'after', waitCount * 100, 'ms');
-    
-    // Set initial language
-    setLanguage(currentLang);
-    
-    // Setup language buttons
-    setupLanguageButtons();
-
-    // RELOAD ALL DATA FROM LOCALSTORAGE (don't trust the initial load)
-    console.log('🔄 DOMContentLoaded: Reloading all data from localStorage');
-    try {
-        // Force fresh read from localStorage
-        cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
-        deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
-        const freshProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-        
-        console.log('Fresh products from localStorage:', freshProducts.length);
-        console.log('Fresh products data:', freshProducts);
-        
-        products = freshProducts; // Update the global products variable
-        console.log('Updated global products variable to:', products.length, 'products');
-    } catch (error) {
-        console.error('❌ Error reloading from localStorage:', error);
-        products = [];
-    }
-    
-    // Clean and initialize
-    console.log('Before cleanProductsData: products =', products.length);
-    cleanProductsData();
-    console.log('After cleanProductsData: products =', products.length);
-    
-    // Initialize defaults if needed (removes duplicates and adds defaults if empty)
-    initializeDefaultProducts();
-    console.log('After initializeDefaultProducts: products =', products.length);
-    
-    console.log('Final products list:', products.length, 'products');
-    
-    // Load products from localStorage (for products.html page)
-    await loadProductsToDOM();
-    
-    // Give the DOM a moment to render
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Now attach event listeners to the rendered products
-    attachProductEventListeners();
-
-    const hamburger = document.querySelector('.hamburger');
-    const navMenu = document.querySelector('.nav-menu');
-
-    if (hamburger) {
-        hamburger.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-        });
-
-        // Close menu when a link is clicked
-        const navLinks = document.querySelectorAll('.nav-menu a');
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                navMenu.classList.remove('active');
-            });
-        });
-    }
-
-    // Update cart count on page load
-    updateCartCount();
-
-    // Product filtering and search
-    const cartIcon = document.querySelector('.cart-icon');
-    if (cartIcon) {
-        cartIcon.addEventListener('click', function(e) {
-            e.preventDefault();
-            showCart();
-        });
-    }
-
-    // Product filtering and search
-    const categoryFilter = document.getElementById('category-filter');
-    const searchProducts = document.getElementById('search-products');
-    
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', filterProducts);
-    }
-    
-    if (searchProducts) {
-        searchProducts.addEventListener('input', filterAndSearchProducts);
-    }
-
-    // Contact form
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', handleContactSubmit);
-    }
-
-    // Newsletter form
-    const newsletterForm = document.querySelector('.newsletter-form');
-    if (newsletterForm) {
-        newsletterForm.addEventListener('submit', handleNewsletterSubmit);
-    }
-});
-
-// ===== Show Cart =====
 function showCart() {
     if (cart.length === 0) {
         showNotification(t('emptyCart'));
         return;
     }
-
-    // Create modal
     let modal = document.getElementById('cart-modal');
     if (!modal) {
         modal = document.createElement('div');
@@ -748,7 +386,6 @@ function showCart() {
         modal.className = 'modal';
         document.body.appendChild(modal);
     }
-
     let total = cart.reduce((sum, item) => sum + item.price, 0);
     let cartHTML = `
         <div class="modal-content cart-modal-content">
@@ -758,7 +395,6 @@ function showCart() {
             </div>
             <div class="modal-body cart-items">
     `;
-
     cart.forEach((item, index) => {
         cartHTML += `
             <div class="cart-item">
@@ -771,7 +407,6 @@ function showCart() {
             </div>
         `;
     });
-
     cartHTML += `
             </div>
             <div class="modal-footer cart-footer">
@@ -782,16 +417,13 @@ function showCart() {
             </div>
         </div>
     `;
-
     modal.innerHTML = cartHTML;
     modal.style.display = 'flex';
 }
 
 function closeCartModal() {
     const modal = document.getElementById('cart-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    if (modal) modal.style.display = 'none';
 }
 
 function removeFromCart(index) {
@@ -806,8 +438,6 @@ function removeFromCart(index) {
 
 function handleCheckout() {
     let total = cart.reduce((sum, item) => sum + item.price, 0);
-    
-    // Save order to localStorage
     const orders = JSON.parse(localStorage.getItem('zonewear-orders')) || [];
     const newOrder = {
         id: Date.now(),
@@ -821,7 +451,6 @@ function handleCheckout() {
     };
     orders.push(newOrder);
     localStorage.setItem('zonewear-orders', JSON.stringify(orders));
-    
     closeCartModal();
     showNotification(`${t('orderSuccess')}\n${t('total')}: ${total.toLocaleString('ar-DZ')} DA`);
     cart = [];
@@ -836,9 +465,8 @@ function showDeliveryForm() {
         modal.className = 'modal';
         document.body.appendChild(modal);
     }
-
+    const algierianStates = ['Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Annaba', 'Alger', 'Tlemcen', 'Tizi Ouzou', 'Algiers', 'Djelfa', 'Jijel', 'Sétif', 'Saida', 'Skikda', 'Sidi Bel Abbès', 'Béjaïa', 'Bidar', 'Tébessa', 'Tlemcen'];
     let stateOptions = algierianStates.map(state => `<option value="${state}">${state}</option>`).join('');
-
     let formHTML = `
         <div class="modal-content delivery-modal-content">
             <div class="modal-header">
@@ -870,56 +498,39 @@ function showDeliveryForm() {
             </div>
         </div>
     `;
-
     modal.innerHTML = formHTML;
     modal.style.display = 'flex';
 }
 
 function closeDeliveryModal() {
     const modal = document.getElementById('delivery-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    if (modal) modal.style.display = 'none';
 }
 
 function handleDeliverySubmit(e) {
     e.preventDefault();
-
     const name = document.getElementById('customer-name').value;
     const phone = document.getElementById('customer-phone').value;
     const state = document.getElementById('customer-state').value;
-
     deliveryInfo = { name, phone, state };
     localStorage.setItem('zonewear-delivery', JSON.stringify(deliveryInfo));
-
     closeDeliveryModal();
     handleCheckout();
 }
 
-// ===== Product Filtering =====
-// ===== Advanced Product Filtering & Search =====
 function filterAndSearchProducts() {
     const searchInput = document.getElementById('search-products');
     const categoryFilter = document.getElementById('category-filter');
-    
     if (!searchInput || !categoryFilter) return;
-    
     const searchTerm = searchInput.value.toLowerCase();
     const selectedCategory = categoryFilter.value;
     const productCards = document.querySelectorAll('.product-card');
     let visibleCount = 0;
-
     productCards.forEach(card => {
         const category = card.getAttribute('data-category');
         const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
-        const description = card.querySelector('.description')?.textContent.toLowerCase() || '';
-        
-        // Check category filter
         const categoryMatch = !selectedCategory || category === selectedCategory;
-        
-        // Check search term
-        const searchMatch = !searchTerm || title.includes(searchTerm) || description.includes(searchTerm);
-        
+        const searchMatch = !searchTerm || title.includes(searchTerm);
         if (categoryMatch && searchMatch) {
             card.style.display = 'block';
             visibleCount++;
@@ -927,60 +538,22 @@ function filterAndSearchProducts() {
             card.style.display = 'none';
         }
     });
-    
-    // Show message if no products found
-    const productsGrid = document.querySelector('.products-grid');
-    if (visibleCount === 0 && productsGrid) {
-        if (!document.getElementById('no-results')) {
-            const noResults = document.createElement('div');
-            noResults.id = 'no-results';
-            noResults.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 40px; color: #999;';
-            noResults.textContent = t('searchNoResults') || 'No products found / لم يتم العثور على منتجات';
-            productsGrid.appendChild(noResults);
-        }
-    } else {
-        const noResults = document.getElementById('no-results');
-        if (noResults) noResults.remove();
-    }
 }
 
-function filterProducts(e) {
-    filterAndSearchProducts();
-}
-
-// ===== Contact Form Handling =====
 function handleContactSubmit(e) {
     e.preventDefault();
-
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
     const subject = document.getElementById('subject').value;
     const message = document.getElementById('message').value;
-
-    // Validate form
     if (!name || !email || !subject || !message) {
-        showFormStatus('املأ جميع الحقول المطلوبة', 'error');
+        showFormStatus('Please fill all required fields', 'error');
         return;
     }
-
-    // Simulate form submission
-    const formData = {
-        name: name,
-        email: email,
-        subject: subject,
-        message: message,
-        timestamp: new Date().toLocaleString('ar-DZ')
-    };
-
+    const formData = { name, email, subject, message, timestamp: new Date().toLocaleString('ar-DZ') };
     console.log('Form Data:', formData);
-
-    // Show success message
-    showFormStatus('شكراً! تم إرسال رسالتك. سنرد عليك قريباً', 'success');
-
-    // Reset form
+    showFormStatus('Thank you! We will reply soon', 'success');
     document.getElementById('contact-form').reset();
-
-    // Clear message after 5 seconds
     setTimeout(() => {
         document.getElementById('form-status').style.display = 'none';
     }, 5000);
@@ -988,31 +561,122 @@ function handleContactSubmit(e) {
 
 function showFormStatus(message, type) {
     const formStatus = document.getElementById('form-status');
-    formStatus.textContent = message;
-    formStatus.className = `form-status ${type}`;
-    formStatus.style.display = 'block';
+    if (formStatus) {
+        formStatus.textContent = message;
+        formStatus.className = `form-status ${type}`;
+        formStatus.style.display = 'block';
+    }
 }
 
-// ===== Newsletter Handling =====
 function handleNewsletterSubmit(e) {
     e.preventDefault();
-
     const emailInput = e.target.querySelector('input[type="email"]');
     const email = emailInput.value;
-
     if (!email) {
-        showNotification('ادخل بريد إلكتروني صحيح');
+        showNotification('Please enter a valid email');
         return;
     }
-
-    // Simulate newsletter signup
     console.log('Newsletter signup:', email);
-    showNotification('[✓] اشتركت بنجاح! تابع بريدك');
-
+    showNotification('Subscribed successfully!');
     emailInput.value = '';
 }
 
-// ===== Smooth Scrolling =====
+// BroadcastChannel listener
+channel.onmessage = (event) => {
+    if (event.data.type === 'productsUpdated') {
+        console.log('🎯 BroadcastChannel: Products updated!');
+        try {
+            products = event.data.products;
+            console.log('✓ Updated products:', products.length);
+            localStorage.setItem('zonewear-products', JSON.stringify(products));
+            loadProductsToDOM();
+            updateCartCount();
+            attachProductEventListeners();
+        } catch (error) {
+            console.error('Error in BroadcastChannel handler:', error);
+        }
+    }
+};
+
+// DOMContentLoaded
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOMContentLoaded: Starting page initialization');
+    
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
+    
+    let waitCount = 0;
+    while (!dbReady && waitCount < 20) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        waitCount++;
+    }
+    console.log('IndexedDB ready:', dbReady);
+    
+    setLanguage(currentLang);
+    setupLanguageButtons();
+    
+    // Reload from localStorage
+    products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+    console.log('Reloaded products from localStorage:', products.length);
+    
+    cleanProductsData();
+    initializeDefaultProducts();
+    
+    console.log('Ready to render:', products.length, 'products');
+    
+    await loadProductsToDOM();
+    
+    const hamburger = document.querySelector('.hamburger');
+    const navMenu = document.querySelector('.nav-menu');
+    if (hamburger) {
+        hamburger.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+        const navLinks = document.querySelectorAll('.nav-menu a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navMenu.classList.remove('active');
+            });
+        });
+    }
+    
+    updateCartCount();
+    attachProductEventListeners();
+    
+    const cartIcon = document.querySelector('.cart-icon');
+    if (cartIcon) {
+        cartIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            showCart();
+        });
+    }
+    
+    const categoryFilter = document.getElementById('category-filter');
+    const searchProducts = document.getElementById('search-products');
+    if (categoryFilter) categoryFilter.addEventListener('change', filterAndSearchProducts);
+    if (searchProducts) searchProducts.addEventListener('input', filterAndSearchProducts);
+    
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) contactForm.addEventListener('submit', handleContactSubmit);
+    
+    const newsletterForm = document.querySelector('.newsletter-form');
+    if (newsletterForm) newsletterForm.addEventListener('submit', handleNewsletterSubmit);
+    
+    console.log('✅ Page initialization complete');
+});
+
+// Storage listener (fallback)
+window.addEventListener('storage', function(e) {
+    if (e.key === 'zonewear-products') {
+        console.log('Storage event: Products changed');
+        products = JSON.parse(e.newValue) || [];
+        loadProductsToDOM();
+    }
+});
+
+// Smooth scrolling
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
@@ -1020,16 +684,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             e.preventDefault();
             const target = document.querySelector(href);
             if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
     });
 });
 
-// ===== Add Animation Styles =====
+// Add animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -1042,11 +703,9 @@ style.textContent = `
             opacity: 1;
         }
     }
-
     .product-card {
         animation: fadeIn 0.5s ease;
     }
-
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -1060,49 +719,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Listen for storage changes from admin panel or other sources
-// Listen for BroadcastChannel messages from admin.html (works across windows/tabs)
-// Listen for BroadcastChannel messages from admin.html (works across windows/tabs)
-channel.onmessage = (event) => {
-    if (event.data.type === 'productsUpdated') {
-        console.log('🎯 BroadcastChannel message received: NEW products update!');
-        console.log('New products count:', event.data.products.length);
-        try {
-            // Immediately update the products variable
-            products = event.data.products;
-            console.log('✓ Updated products variable from BroadcastChannel');
-            
-            // Save to localStorage to persist
-            localStorage.setItem('zonewear-products', JSON.stringify(products));
-            console.log('✓ Saved to localStorage');
-            
-            // Immediately re-render the products DOM
-            console.log('Reloading products on DOM...');
-            loadProductsToDOM();
-            console.log('✓ DOM reloaded');
-            
-            updateCartCount();
-            attachProductEventListeners();
-            console.log('✓ All UI updated from BroadcastChannel message');
-        } catch (error) {
-            console.error('❌ Error in BroadcastChannel handler:', error);
-        }
-    }
-};
-
-// Also listen for localStorage changes (for old browsers or fallback)
-window.addEventListener('storage', function(e) {
-    if (e.key === 'zonewear-products') {
-        console.log('Storage event: zonewear-products changed, reloading products');
-        try {
-            products = JSON.parse(e.newValue) || [];
-            console.log('Reloaded products from storage event:', products.length);
-            loadProductsToDOM();
-        } catch (error) {
-            console.error('Error reloading products from storage:', error);
-        }
-    }
-});
-
-// ===== Setup Language Buttons (Fallback) =====
-setupLanguageButtons();
+console.log('✅ script.js fully loaded and ready');
