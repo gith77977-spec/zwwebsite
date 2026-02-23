@@ -708,7 +708,7 @@
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            event.target.classList.add('active');
+            document.querySelector(`button[onclick="showSection('${id}')"]`).classList.add('active');
             
             if (id === 'dashboard') updateDashboard();
             if (id === 'orders') updateOrdersTable();
