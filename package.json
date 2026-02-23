@@ -1,0 +1,14 @@
+{
+  "name": "zonewear-full",
+  "version": "1.0.0",
+  "description": "ZONEWEAR E-commerce Full Stack",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "dev": "cd backend && npm run dev",
+    "install-all": "npm install && cd backend && npm install"
+  },
+  "keywords": ["fashion", "ecommerce"],
+  "author": "ZONEWEAR",
+  "license": "MIT"
+}
