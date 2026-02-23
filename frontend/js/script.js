@@ -1,5 +1,28 @@
 console.log('✓ script.js loaded successfully');
 
+
+// Force deduplication of products in localStorage at script start
+function deduplicateProducts(arr) {
+    if (!Array.isArray(arr)) return [];
+    const seenIds = new Set();
+    const seenNames = new Set();
+    return arr.filter(p => {
+        if (!p || typeof p !== 'object') return false;
+        if (!p.id || !p.name) return false;
+        if (seenIds.has(p.id) || seenNames.has(p.name)) return false;
+        seenIds.add(p.id);
+        seenNames.add(p.name);
+        return true;
+    });
+}
+
+let productsRaw = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+let products = deduplicateProducts(productsRaw);
+if (products.length !== productsRaw.length) {
+    localStorage.setItem('zonewear-products', JSON.stringify(products));
+    console.log('✅ Duplicate products removed from localStorage:', productsRaw.length - products.length);
+}
+
 // Initialize BroadcastChannel for cross-window communication
 const channel = new BroadcastChannel('zonewear-products');
 
