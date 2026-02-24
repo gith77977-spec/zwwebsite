@@ -821,146 +821,109 @@
             event.preventDefault();
             console.log('🔵 handleProductSubmit started');
             
-            const imageFile = document.getElementById('product-image-file').files[0];
+            // Get form values first
+            const name = document.getElementById('product-name').value.trim();
+            const descAr = document.getElementById('product-desc-ar').value.trim();
+            const priceStr = document.getElementById('product-price').value.trim();
+            const category = document.getElementById('product-category').value;
+            const stockS = parseInt(document.getElementById('product-stock-s').value) || 0;
+            const stockM = parseInt(document.getElementById('product-stock-m').value) || 0;
+            const stockL = parseInt(document.getElementById('product-stock-l').value) || 0;
+            const stockXL = parseInt(document.getElementById('product-stock-xl').value) || 0;
             
-            if (!imageFile) {
-                console.warn('⚠️ No image file selected');
-                alert('Please select an image');
+            // Validate inputs
+            if (!name) {
+                alert('Product name is required');
                 return;
             }
-
-            console.log('📷 Image file selected:', imageFile.name, imageFile.size, 'bytes');
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                console.log('🔵 FileReader.onload triggered');
-                const imageBlob = new Blob([e.target.result], { type: imageFile.type });
-                const imageName = `product-${Date.now()}-${imageFile.name}`;
-                
-                try {
-                    // Save image to IndexedDB
-                    console.log('💾 Saving image to IndexedDB...');
-                    await saveImageToDb(imageBlob, imageName);
-                    console.log('✅ Image saved to IndexedDB');
-                    
-                    const name = document.getElementById('product-name').value;
-                    const descAr = document.getElementById('product-desc-ar').value;
-                    const price = parseInt(document.getElementById('product-price').value);
-                    const category = document.getElementById('product-category').value;
-                    const stockS = parseInt(document.getElementById('product-stock-s').value) || 0;
-                    const stockM = parseInt(document.getElementById('product-stock-m').value) || 0;
-                    const stockL = parseInt(document.getElementById('product-stock-l').value) || 0;
-                    const stockXL = parseInt(document.getElementById('product-stock-xl').value) || 0;
-                    const totalStock = stockS + stockM + stockL + stockXL;
-                    
-                    console.log('📝 Form data:', { name, descAr, price, category, stockS, stockM, stockL, stockXL, totalStock });
-                    
-                    // Validate price is valid number
-                    if (isNaN(price) || price < 0) {
-                        console.error('❌ Invalid price');
-                        alert('Invalid price. Please enter a valid number.');
-                        return;
-                    }
-                    
-                    const product = {
-                        id: editingProductId || Date.now(),
-                        name: name,
-                        descAr: descAr,
-                        price: price,
-                        category: category,
-                        stock: totalStock,
-                        sizes: {
-                            s: stockS,
-                            m: stockM,
-                            l: stockL,
-                            xl: stockXL
-                        },
-                        image: imageName,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    console.log('✍️ Product object created:', product);
-
-                    // Load existing products from localStorage
-                    let productsList = [];
-                    let oldProductsValue = '';
-                    try {
-                        oldProductsValue = localStorage.getItem('zonewear-products');
-                        productsList = JSON.parse(oldProductsValue) || [];
-                        console.log('📦 Loaded existing products from localStorage:', productsList.length);
-                    } catch (e) {
-                        console.error('❌ Error parsing products:', e);
-                        productsList = [];
-                        oldProductsValue = '';
-                    }
-                    
-                    if (editingProductId) {
-                        // Update existing product
-                        const index = productsList.findIndex(p => p.id === editingProductId);
-                        if (index !== -1) {
-                            productsList[index] = product;
-                            console.log('🔄 Updated product at index:', index);
-                        }
-                    } else {
-                        // Add new product
-                        productsList.push(product);
-                        console.log('✅ Added new product. Total now:', productsList.length);
-                    }
-
-                    // Save directly to localStorage
-                    const jsonString = JSON.stringify(productsList);
-                    localStorage.setItem('zonewear-products', jsonString);
-                    console.log('💾 Saved to localStorage!');
-                    console.log('✅ Saved to localStorage:', productsList.length, 'products');
-                    console.log('✅ Product details:', product);
-                    
-                    // Update the local products variable in admin.html
-                    products = productsList;
-                    
-                    // Broadcast via BroadcastChannel to ALL windows/tabs (including products.html)
-                    try {
-                        channel.postMessage({
-                            type: 'productsUpdated',
-                            products: productsList,
-                            timestamp: Date.now()
-                        });
-                        console.log('📢 Broadcast sent via BroadcastChannel:', productsList.length, 'products');
-                    } catch (error) {
-                        console.error('❌ Error broadcasting:', error);
-                    }
-                    
-                    console.log('✅ Product saved:', product);
-                    console.log('✅ All products in localStorage:', productsList);
-                    
-                    loadInventoryTable();
-                    updateDashboard();
-                    closeProductModal();
-                    
-                    // Show success message
-                    const message = editingProductId ? 'Product updated successfully!' : 'Product added successfully!';
-                    alert(message + '\n\n✅ Saved to database!\n\nGoing to products page...');
-                    
-                    // Send broadcast one more time with a small delay
-                    setTimeout(() => {
-                        try {
-                            channel.postMessage({
-                                type: 'productsUpdated',
-                                products: productsList,
-                                timestamp: Date.now()
-                            });
-                            console.log('✅ Second broadcast sent');
-                        } catch (error) {}
-                        
-                        // Navigate to products page after broadcast
-                        console.log('🔗 Redirecting to products.html');
-                        window.location.href = 'products.html';
-                    }, 100);
-                } catch (error) {
-                    console.error('❌ Error saving product:', error);
-                    console.error('Error stack:', error.stack);
-                    alert('Error saving product: ' + error.message);
-                }
+            
+            const price = parseInt(priceStr);
+            if (isNaN(price) || price < 0) {
+                alert('Invalid price');
+                return;
+            }
+            
+            const totalStock = stockS + stockM + stockL + stockXL;
+            console.log('📝 Form data valid:', { name, price, totalStock });
+            
+            // Create product object
+            const product = {
+                id: editingProductId || Date.now(),
+                name: name,
+                descAr: descAr,
+                price: price,
+                category: category,
+                stock: totalStock,
+                sizes: {
+                    s: stockS,
+                    m: stockM,
+                    l: stockL,
+                    xl: stockXL
+                },
+                image: 'assets/images/zw-halfzip-white.png',
+                createdAt: new Date().toISOString()
             };
-            reader.readAsArrayBuffer(imageFile);
+            
+            console.log('✍️ Product object created:', product);
+            
+            // Get existing products
+            let productsList = [];
+            try {
+                const stored = localStorage.getItem('zonewear-products');
+                productsList = stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error('Error parsing existing products:', e);
+                productsList = [];
+            }
+            
+            // Add or update product
+            if (editingProductId) {
+                const index = productsList.findIndex(p => p.id === editingProductId);
+                if (index !== -1) {
+                    productsList[index] = product;
+                    console.log('🔄 Updated product at index:', index);
+                }
+            } else {
+                productsList.push(product);
+                console.log('✅ Added new product. Total now:', productsList.length);
+            }
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('zonewear-products', JSON.stringify(productsList));
+                console.log('💾 SAVED to localStorage!');
+                console.log('📦 Products in storage now:', productsList.length);
+            } catch (e) {
+                console.error('❌ Error saving to localStorage:', e);
+                alert('Error saving to localStorage');
+                return;
+            }
+            
+            // Update admin page
+            products = productsList;
+            loadInventoryTable();
+            updateDashboard();
+            closeProductModal();
+            
+            // Broadcast to other tabs
+            try {
+                channel.postMessage({
+                    type: 'productsUpdated',
+                    products: productsList,
+                    timestamp: Date.now()
+                });
+                console.log('📢 Broadcast sent');
+            } catch (error) {
+                console.error('Error broadcasting:', error);
+            }
+            
+            // Show success and redirect
+            alert('✅ Product saved successfully!');
+            
+            setTimeout(() => {
+                console.log('🔗 Redirecting to products.html');
+                window.location.href = 'products.html';
+            }, 500);
         }
 
         function editProduct(id) {

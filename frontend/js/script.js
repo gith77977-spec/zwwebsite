@@ -5,15 +5,21 @@ console.log('✓ script.js loaded successfully');
 function deduplicateProducts(arr) {
     if (!Array.isArray(arr)) return [];
     const seenIds = new Set();
-    const seenNames = new Set();
-    return arr.filter(p => {
-        if (!p || typeof p !== 'object') return false;
-        if (!p.id || !p.name) return false;
-        if (seenIds.has(p.id) || seenNames.has(p.name)) return false;
+    const result = [];
+    
+    for (const p of arr) {
+        // Skip invalid products
+        if (!p || typeof p !== 'object') continue;
+        if (!p.id || !p.name) continue;
+        
+        // Skip duplicates
+        if (seenIds.has(p.id)) continue;
+        
         seenIds.add(p.id);
-        seenNames.add(p.name);
-        return true;
-    });
+        result.push(p);
+    }
+    
+    return result;
 }
 
 let productsRaw = JSON.parse(localStorage.getItem('zonewear-products')) || [];
@@ -151,10 +157,11 @@ function deduplicateProducts(arr) {
 }
 
 function cleanProductsData() {
-    console.log('cleanProductsData - input:', products.length);
+    console.log('🧹 cleanProductsData - input:', products.length, 'products');
     products = deduplicateProducts(products);
+    console.log('🧹 cleanProductsData - after deduplication:', products.length);
     localStorage.setItem('zonewear-products', JSON.stringify(products));
-    console.log('cleanProductsData - output:', products.length);
+    console.log('🧹 cleanProductsData - saved to localStorage');
 }
 
 // Initialize default products
@@ -169,71 +176,9 @@ function initializeDefaultProducts() {
         }
     });
     products = uniqueProducts;
-    // Only load defaults if localStorage is completely empty (not after explicit deletion)
-    const raw = localStorage.getItem('zonewear-products');
-    if (products.length === 0 && (!raw || raw === '[]')) {
-        console.log('Empty products - loading defaults');
-        const defaultProducts = [
-            {
-                id: 1,
-                name: 'ZW Half-Zip White',
-                descAr: 'نصف سستة أبيض',
-                price: 3500,
-                category: 'mens',
-                stock: 50,
-                image: 'assets/images/zw-halfzip-white.png'
-            },
-            {
-                id: 2,
-                name: 'ZW Hoodie Black',
-                descAr: 'هوديي أسود',
-                price: 4500,
-                category: 'mens',
-                stock: 45,
-                image: 'assets/images/zw-hoodie-black.png'
-            },
-            {
-                id: 3,
-                name: 'ZW Classic T-shirt White',
-                descAr: 'تيشيرت كلاسيك أبيض',
-                price: 1999,
-                category: 'mens',
-                stock: 60,
-                image: 'assets/images/zw-classic-tshirt-white.png'
-            },
-            {
-                id: 4,
-                name: 'ZW Classic T-shirt Black',
-                descAr: 'تيشيرت كلاسيك أسود',
-                price: 1999,
-                category: 'mens',
-                stock: 55,
-                image: 'assets/images/zw-classic-tshirt-black.png'
-            },
-            {
-                id: 5,
-                name: 'ZW Women Premium Sweater White',
-                descAr: 'سويتر نسائي بريميوم أبيض',
-                price: 3800,
-                category: 'womens',
-                stock: 40,
-                image: 'assets/images/zw-halfzip-white.png'
-            },
-            {
-                id: 6,
-                name: 'ZW Women Premium Sweater Black',
-                descAr: 'سويتر نسائي بريميوم أسود',
-                price: 3800,
-                category: 'womens',
-                stock: 35,
-                image: 'assets/images/zw-hoodie-black.png'
-            }
-        ];
-        products = defaultProducts;
-        localStorage.setItem('zonewear-products', JSON.stringify(products));
-    }
     localStorage.setItem('zonewear-products', JSON.stringify(products));
     console.log('initializeDefaultProducts - final count:', products.length);
+}
 }
 
 // Load products to DOM
