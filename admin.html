@@ -790,7 +790,8 @@
         function updateDashboard() {
             const totalOrders = orders.length || 0;
             const pendingOrders = orders.filter(o => o.status === 'pending').length || 0;
-            const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0) || 0;
+            // Handle both old field names (total) and new field names (totalPrice)
+            const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || o.total || 0), 0) || 0;
             const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0) || 0;
             
             document.getElementById('total-orders').textContent = totalOrders;
@@ -826,8 +827,10 @@
         }
 
         function updateAnalytics() {
-            const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0) || 0;
-            const uniqueCustomers = new Set(orders.map(o => o.customerName)).size;
+            // Handle both old field names (total) and new field names (totalPrice)
+            const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || o.total || 0), 0) || 0;
+            // Handle both old field names (customer) and new field names (customerName)
+            const uniqueCustomers = new Set(orders.map(o => o.customerName || o.customer)).size;
             
             document.getElementById('analytics-sales').textContent = totalRevenue.toLocaleString('ar-DZ') + ' DA';
             document.getElementById('analytics-customers').textContent = uniqueCustomers;
@@ -980,6 +983,30 @@
                     <td>
                         <button class="btn btn-secondary" onclick="editProduct(${product.id})">Edit</button>
                         <button class="btn btn-secondary" onclick="deleteProduct(${product.id})" style="color: #cc0000;">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateOrdersTable() {
+            const tbody = document.getElementById('orders-table');
+            const sortedOrders = [...orders].reverse();
+            
+            if (sortedOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No orders yet. Check back soon!</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = sortedOrders.map(order => `
+                <tr>
+                    <td>#${order.id}</td>
+                    <td>${order.customer || order.customerName || 'Unknown'}</td>
+                    <td>${order.phone || order.customerPhone || '-'}</td>
+                    <td>${order.state || order.customerState || '-'}</td>
+                    <td>${order.total ? order.total.toLocaleString('ar-DZ') : (order.totalPrice ? order.totalPrice.toLocaleString('ar-DZ') : '0')} DA</td>
+                    <td><span class="status-badge status-${order.status}">${order.status || 'pending'}</span></td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="markAsCompleted(${order.id})">Complete</button>
                     </td>
                 </tr>
             `).join('');

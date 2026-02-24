@@ -272,24 +272,42 @@ app.get('/api/orders', verifyToken, async (req, res) => {
 // Add order (public)
 app.post('/api/orders', (req, res) => {
     try {
-        const { customer, phone, state, products, total } = req.body;
+        const { customerName, customerPhone, customerState, items, totalPrice, status = 'pending', createdAt } = req.body;
         
+        // Validate required fields
+        if (!customerName || !customerPhone || !customerState || !items || !totalPrice) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        // Map new field names to existing database columns
         db.run(
-            `INSERT INTO orders (customer, phone, state, products, total, status)
-             VALUES (?, ?, ?, ?, ?, 'pending')`,
-            [customer, phone, state, JSON.stringify(products), total],
+            `INSERT INTO orders (customer, phone, state, products, total, status, date, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [customerName, customerPhone, customerState, JSON.stringify(items), totalPrice, status, createdAt || new Date().toISOString(), ''],
             function(err) {
                 if (err) {
+                    console.error('❌ Error inserting order:', err);
                     return res.status(500).json({ error: err.message });
                 }
                 res.json({
                     success: true,
-                    message: 'Order created',
-                    orderId: this.lastID
+                    message: 'Order created successfully',
+                    orderId: this.lastID,
+                    order: {
+                        id: this.lastID,
+                        customerName,
+                        customerPhone,
+                        customerState,
+                        items,
+                        totalPrice,
+                        status,
+                        createdAt: createdAt || new Date().toISOString()
+                    }
                 });
             }
         );
     } catch (err) {
+        console.error('❌ Error in POST /api/orders:', err);
         res.status(500).json({ error: err.message });
     }
 });
