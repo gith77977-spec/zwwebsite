@@ -917,7 +917,7 @@
                     
                     // Show success message
                     const message = editingProductId ? 'Product updated successfully!' : 'Product added successfully!';
-                    alert(message + '\n\n✅ Saved to database!');
+                    alert(message + '\n\n✅ Saved to database!\n\nGoing to products page...');
                     
                     // Send broadcast one more time with a small delay
                     setTimeout(() => {
@@ -929,6 +929,9 @@
                             });
                             console.log('✅ Second broadcast sent');
                         } catch (error) {}
+                        
+                        // Navigate to products page after broadcast
+                        window.location.href = 'products.html';
                     }, 100);
                 } catch (error) {
                     console.error('Error saving product:', error);
