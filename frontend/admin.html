@@ -819,42 +819,54 @@
 
         function handleProductSubmit(event) {
             event.preventDefault();
+            console.log('🔵 handleProductSubmit started');
             
             const imageFile = document.getElementById('product-image-file').files[0];
             
             if (!imageFile) {
+                console.warn('⚠️ No image file selected');
                 alert('Please select an image');
                 return;
             }
 
+            console.log('📷 Image file selected:', imageFile.name, imageFile.size, 'bytes');
             const reader = new FileReader();
             reader.onload = async function(e) {
+                console.log('🔵 FileReader.onload triggered');
                 const imageBlob = new Blob([e.target.result], { type: imageFile.type });
                 const imageName = `product-${Date.now()}-${imageFile.name}`;
                 
                 try {
                     // Save image to IndexedDB
+                    console.log('💾 Saving image to IndexedDB...');
                     await saveImageToDb(imageBlob, imageName);
+                    console.log('✅ Image saved to IndexedDB');
                     
+                    const name = document.getElementById('product-name').value;
+                    const descAr = document.getElementById('product-desc-ar').value;
                     const price = parseInt(document.getElementById('product-price').value);
+                    const category = document.getElementById('product-category').value;
                     const stockS = parseInt(document.getElementById('product-stock-s').value) || 0;
                     const stockM = parseInt(document.getElementById('product-stock-m').value) || 0;
                     const stockL = parseInt(document.getElementById('product-stock-l').value) || 0;
                     const stockXL = parseInt(document.getElementById('product-stock-xl').value) || 0;
                     const totalStock = stockS + stockM + stockL + stockXL;
                     
+                    console.log('📝 Form data:', { name, descAr, price, category, stockS, stockM, stockL, stockXL, totalStock });
+                    
                     // Validate price is valid number
                     if (isNaN(price) || price < 0) {
+                        console.error('❌ Invalid price');
                         alert('Invalid price. Please enter a valid number.');
                         return;
                     }
                     
                     const product = {
                         id: editingProductId || Date.now(),
-                        name: document.getElementById('product-name').value,
-                        descAr: document.getElementById('product-desc-ar').value,
+                        name: name,
+                        descAr: descAr,
                         price: price,
-                        category: document.getElementById('product-category').value,
+                        category: category,
                         stock: totalStock,
                         sizes: {
                             s: stockS,
@@ -866,13 +878,17 @@
                         createdAt: new Date().toISOString()
                     };
 
+                    console.log('✍️ Product object created:', product);
+
                     // Load existing products from localStorage
                     let productsList = [];
                     let oldProductsValue = '';
                     try {
                         oldProductsValue = localStorage.getItem('zonewear-products');
                         productsList = JSON.parse(oldProductsValue) || [];
+                        console.log('📦 Loaded existing products from localStorage:', productsList.length);
                     } catch (e) {
+                        console.error('❌ Error parsing products:', e);
                         productsList = [];
                         oldProductsValue = '';
                     }
@@ -882,14 +898,18 @@
                         const index = productsList.findIndex(p => p.id === editingProductId);
                         if (index !== -1) {
                             productsList[index] = product;
+                            console.log('🔄 Updated product at index:', index);
                         }
                     } else {
                         // Add new product
                         productsList.push(product);
+                        console.log('✅ Added new product. Total now:', productsList.length);
                     }
 
                     // Save directly to localStorage
-                    localStorage.setItem('zonewear-products', JSON.stringify(productsList));
+                    const jsonString = JSON.stringify(productsList);
+                    localStorage.setItem('zonewear-products', jsonString);
+                    console.log('💾 Saved to localStorage!');
                     console.log('✅ Saved to localStorage:', productsList.length, 'products');
                     console.log('✅ Product details:', product);
                     
@@ -903,9 +923,9 @@
                             products: productsList,
                             timestamp: Date.now()
                         });
-                        console.log('✅ Broadcast sent via BroadcastChannel:', productsList.length, 'products');
+                        console.log('📢 Broadcast sent via BroadcastChannel:', productsList.length, 'products');
                     } catch (error) {
-                        console.error('Error broadcasting:', error);
+                        console.error('❌ Error broadcasting:', error);
                     }
                     
                     console.log('✅ Product saved:', product);
@@ -931,10 +951,12 @@
                         } catch (error) {}
                         
                         // Navigate to products page after broadcast
+                        console.log('🔗 Redirecting to products.html');
                         window.location.href = 'products.html';
                     }, 100);
                 } catch (error) {
-                    console.error('Error saving product:', error);
+                    console.error('❌ Error saving product:', error);
+                    console.error('Error stack:', error.stack);
                     alert('Error saving product: ' + error.message);
                 }
             };
@@ -974,6 +996,23 @@
                 alert('All products deleted!');
             }
         }
+
+        // Debug function - check what's in localStorage
+        window.debugProducts = function() {
+            const stored = localStorage.getItem('zonewear-products');
+            console.log('=== DEBUG INFO ===');
+            console.log('Raw localStorage value:', stored);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    console.log('Parsed products:', parsed);
+                    console.log('Product count:', parsed.length);
+                } catch (e) {
+                    console.error('Error parsing:', e);
+                }
+            }
+            return localStorage.getItem('zonewear-products');
+        };
 
         function loadInventoryTable() {
             const tbody = document.getElementById('inventory-table');
