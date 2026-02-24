@@ -821,7 +821,7 @@
             event.preventDefault();
             console.log('🔵 handleProductSubmit started');
             
-            // Get form values first
+            // Get form values
             const name = document.getElementById('product-name').value.trim();
             const descAr = document.getElementById('product-desc-ar').value.trim();
             const priceStr = document.getElementById('product-price').value.trim();
@@ -830,121 +830,168 @@
             const stockM = parseInt(document.getElementById('product-stock-m').value) || 0;
             const stockL = parseInt(document.getElementById('product-stock-l').value) || 0;
             const stockXL = parseInt(document.getElementById('product-stock-xl').value) || 0;
+            const imageFile = document.getElementById('product-image-file').files[0];
             
             // Validate inputs
             if (!name) {
+                console.error('❌ Product name is required');
                 alert('Product name is required');
+                return;
+            }
+            
+            if (!imageFile) {
+                console.error('❌ Image file is required');
+                alert('Please select a product image');
                 return;
             }
             
             const price = parseInt(priceStr);
             if (isNaN(price) || price < 0) {
+                console.error('❌ Invalid price');
                 alert('Invalid price');
                 return;
             }
             
             const totalStock = stockS + stockM + stockL + stockXL;
-            console.log('📝 Form data valid:', { name, price, totalStock });
+            console.log('📝 Form data valid:', { name, price, totalStock, imageName: imageFile.name });
             
-            // Create product object
-            const product = {
-                id: editingProductId || Date.now(),
-                name: name,
-                descAr: descAr,
-                price: price,
-                category: category,
-                stock: totalStock,
-                sizes: {
-                    s: stockS,
-                    m: stockM,
-                    l: stockL,
-                    xl: stockXL
-                },
-                image: 'assets/images/zw-halfzip-white.png',
-                createdAt: new Date().toISOString()
-            };
-            
-            console.log('✍️ Product object created:', product);
-            
-            // Get existing products
-            let productsList = [];
-            try {
-                const stored = localStorage.getItem('zonewear-products');
-                productsList = stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                console.error('Error parsing existing products:', e);
-                productsList = [];
-            }
-            
-            // Add or update product
-            if (editingProductId) {
-                const index = productsList.findIndex(p => p.id === editingProductId);
-                if (index !== -1) {
-                    productsList[index] = product;
-                    console.log('🔄 Updated product at index:', index);
+            // Read and save image
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const imageBlob = new Blob([e.target.result], { type: imageFile.type });
+                    const imageName = `product-${Date.now()}-${imageFile.name}`;
+                    
+                    console.log('💾 Saving image to IndexedDB:', imageName);
+                    await saveImageToDb(imageBlob, imageName);
+                    console.log('✅ Image saved to IndexedDB');
+                    
+                    // Create product object with saved image
+                    const product = {
+                        id: editingProductId || Date.now(),
+                        name: name,
+                        descAr: descAr,
+                        price: price,
+                        category: category,
+                        stock: totalStock,
+                        sizes: {
+                            s: stockS,
+                            m: stockM,
+                            l: stockL,
+                            xl: stockXL
+                        },
+                        image: imageName,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    console.log('✍️ Product object created:', product);
+                    
+                    // Get existing products
+                    let productsList = [];
+                    try {
+                        const stored = localStorage.getItem('zonewear-products');
+                        productsList = stored ? JSON.parse(stored) : [];
+                        console.log('📦 Loaded existing products:', productsList.length);
+                    } catch (e) {
+                        console.error('Error parsing existing products:', e);
+                        productsList = [];
+                    }
+                    
+                    // Add or update product
+                    if (editingProductId) {
+                        const index = productsList.findIndex(p => p.id === editingProductId);
+                        if (index !== -1) {
+                            productsList[index] = product;
+                            console.log('🔄 Updated product at index:', index);
+                        }
+                    } else {
+                        productsList.push(product);
+                        console.log('✅ Added new product. Total now:', productsList.length);
+                    }
+                    
+                    // Save to localStorage
+                    localStorage.setItem('zonewear-products', JSON.stringify(productsList));
+                    console.log('💾 SAVED to localStorage!');
+                    console.log('📦 Products in storage now:', productsList.length);
+                    
+                    // Update admin page
+                    products = productsList;
+                    loadInventoryTable();
+                    updateDashboard();
+                    closeProductModal();
+                    
+                    // Broadcast to other tabs
+                    try {
+                        channel.postMessage({
+                            type: 'productsUpdated',
+                            products: productsList,
+                            timestamp: Date.now()
+                        });
+                        console.log('📢 Broadcast sent');
+                    } catch (error) {
+                        console.error('Error broadcasting:', error);
+                    }
+                    
+                    // Show success and redirect
+                    alert('✅ Product saved successfully!');
+                    
+                    setTimeout(() => {
+                        console.log('🔗 Redirecting to products.html');
+                        window.location.href = 'products.html';
+                    }, 500);
+                } catch (error) {
+                    console.error('❌ Error in product submission:', error);
+                    alert('Error saving product: ' + error.message);
                 }
-            } else {
-                productsList.push(product);
-                console.log('✅ Added new product. Total now:', productsList.length);
-            }
-            
-            // Save to localStorage
-            try {
-                localStorage.setItem('zonewear-products', JSON.stringify(productsList));
-                console.log('💾 SAVED to localStorage!');
-                console.log('📦 Products in storage now:', productsList.length);
-            } catch (e) {
-                console.error('❌ Error saving to localStorage:', e);
-                alert('Error saving to localStorage');
-                return;
-            }
-            
-            // Update admin page
-            products = productsList;
-            loadInventoryTable();
-            updateDashboard();
-            closeProductModal();
-            
-            // Broadcast to other tabs
-            try {
-                channel.postMessage({
-                    type: 'productsUpdated',
-                    products: productsList,
-                    timestamp: Date.now()
-                });
-                console.log('📢 Broadcast sent');
-            } catch (error) {
-                console.error('Error broadcasting:', error);
-            }
-            
-            // Show success and redirect
-            alert('✅ Product saved successfully!');
-            
-            setTimeout(() => {
-                console.log('🔗 Redirecting to products.html');
-                window.location.href = 'products.html';
-            }, 500);
+            };
+            reader.onerror = () => {
+                console.error('❌ Error reading file');
+                alert('Error reading image file');
+            };
+            reader.readAsArrayBuffer(imageFile);
         }
 
         function editProduct(id) {
             const product = products.find(p => p.id === id);
             if (product) {
+                console.log('📝 Editing product:', product);
                 editingProductId = id;
                 document.getElementById('modal-title').textContent = 'Edit Product';
                 document.getElementById('product-name').value = product.name;
                 document.getElementById('product-desc-ar').value = product.descAr || '';
                 document.getElementById('product-price').value = product.price;
                 document.getElementById('product-category').value = product.category;
-                document.getElementById('product-stock').value = product.stock;
+                document.getElementById('product-stock-s').value = product.sizes?.s || 0;
+                document.getElementById('product-stock-m').value = product.sizes?.m || 0;
+                document.getElementById('product-stock-l').value = product.sizes?.l || 0;
+                document.getElementById('product-stock-xl').value = product.sizes?.xl || 0;
                 document.getElementById('product-modal').classList.add('active');
+                console.log('✅ Product form populated for editing');
+            } else {
+                console.error('❌ Product not found:', id);
             }
         }
 
         function deleteProduct(id) {
             if (confirm('Are you sure you want to delete this product?')) {
+                console.log('🗑️ Deleting product:', id);
                 products = products.filter(p => p.id !== parseInt(id) && p.id !== id);
                 localStorage.setItem('zonewear-products', JSON.stringify(products));
                 loadInventoryTable();
+                updateDashboard();
+                
+                // Broadcast deletion to other tabs
+                try {
+                    channel.postMessage({
+                        type: 'productsUpdated',
+                        products: products,
+                        timestamp: Date.now()
+                    });
+                    console.log('📢 Broadcast sent: product deleted');
+                } catch (error) {
+                    console.error('Error broadcasting deletion:', error);
+                }
+                
                 alert('Product deleted!');
             }
         }
@@ -981,22 +1028,24 @@
             const tbody = document.getElementById('inventory-table');
             
             if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No products yet. Add one to get started!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No products yet. Add one to get started!</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = products.map(product => `
+            tbody.innerHTML = products.map((product, index) => `
                 <tr>
+                    <td>${index + 1}</td>
                     <td>${product.name}</td>
-                    <td>${product.price.toLocaleString('ar-DZ')} DA</td>
-                    <td>${product.stock}</td>
                     <td>${product.category}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.price.toLocaleString('ar-DZ')} DA</td>
                     <td>
                         <button class="btn btn-secondary" onclick="editProduct(${product.id})">Edit</button>
                         <button class="btn btn-secondary" onclick="deleteProduct(${product.id})" style="color: #cc0000;">Delete</button>
                     </td>
                 </tr>
             `).join('');
+            console.log('✅ Inventory table updated with', products.length, 'products');
         }
 
         function logout() {

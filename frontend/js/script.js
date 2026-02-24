@@ -3,22 +3,41 @@ console.log('✓ script.js loaded successfully');
 
 // Force deduplication of products in localStorage at script start
 function deduplicateProducts(arr) {
-    if (!Array.isArray(arr)) return [];
+    if (!Array.isArray(arr)) {
+        console.warn('⚠️ deduplicateProducts: input is not an array');
+        return [];
+    }
     const seenIds = new Set();
     const result = [];
+    let removedCount = 0;
     
     for (const p of arr) {
         // Skip invalid products
-        if (!p || typeof p !== 'object') continue;
-        if (!p.id || !p.name) continue;
+        if (!p || typeof p !== 'object') {
+            console.warn('⚠️ Skipping invalid product:', p);
+            removedCount++;
+            continue;
+        }
+        if (!p.id || !p.name) {
+            console.warn('⚠️ Skipping product missing id or name:', p);
+            removedCount++;
+            continue;
+        }
         
         // Skip duplicates
-        if (seenIds.has(p.id)) continue;
+        if (seenIds.has(p.id)) {
+            console.warn('⚠️ Duplicate product ID found:', p.id);
+            removedCount++;
+            continue;
+        }
         
         seenIds.add(p.id);
         result.push(p);
     }
     
+    if (removedCount > 0) {
+        console.log(`✅ deduplicateProducts: removed ${removedCount} duplicates/invalid products`);
+    }
     return result;
 }
 
@@ -158,10 +177,13 @@ function deduplicateProducts(arr) {
 
 function cleanProductsData() {
     console.log('🧹 cleanProductsData - input:', products.length, 'products');
+    const originalLength = products.length;
     products = deduplicateProducts(products);
-    console.log('🧹 cleanProductsData - after deduplication:', products.length);
+    if (originalLength !== products.length) {
+        console.log(`🧹 cleanProductsData - removed ${originalLength - products.length} duplicates`);
+    }
     localStorage.setItem('zonewear-products', JSON.stringify(products));
-    console.log('🧹 cleanProductsData - saved to localStorage');
+    console.log('🧹 cleanProductsData - final count:', products.length, 'products saved to localStorage');
 }
 
 // Initialize default products
@@ -178,7 +200,6 @@ function initializeDefaultProducts() {
     products = uniqueProducts;
     localStorage.setItem('zonewear-products', JSON.stringify(products));
     console.log('initializeDefaultProducts - final count:', products.length);
-}
 }
 
 // Load products to DOM
@@ -587,12 +608,17 @@ channel.onmessage = (event) => {
 
 // Fallback: Check localStorage every 2 seconds for updates
 setInterval(() => {
-    const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-    if (savedProducts.length !== products.length || JSON.stringify(savedProducts) !== JSON.stringify(products)) {
-        console.log('📦 localStorage changed, reloading products:', savedProducts.length, 'found');
-        products = deduplicateProducts(savedProducts);
-        loadProductsToDOM();
-        attachProductEventListeners();
+    try {
+        const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+        if (savedProducts.length !== products.length) {
+            console.log('📦 localStorage changed, reloading products:', savedProducts.length, 'found');
+            products = deduplicateProducts(savedProducts);
+            loadProductsToDOM();
+            attachProductEventListeners();
+            updateCartCount();
+        }
+    } catch (error) {
+        console.error('❌ Error in polling interval:', error);
     }
 }, 2000);
 
