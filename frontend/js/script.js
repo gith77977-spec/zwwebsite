@@ -153,14 +153,8 @@ function setLanguage(lang) {
 // Data initialization
 let cart = JSON.parse(localStorage.getItem('zonewear-cart')) || [];
 let deliveryInfo = JSON.parse(localStorage.getItem('zonewear-delivery')) || {};
-let products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-// Deduplicate products immediately
-products = deduplicateProducts(products);
+// products is already defined at the top of the file
 let lastOrderTime = 0;
-
-console.log('Initial products from localStorage:', products.length);
-
-// Clean products data
 function deduplicateProducts(arr) {
     if (!Array.isArray(arr)) return [];
     const seenIds = new Set();
