@@ -219,11 +219,17 @@ async function loadProductsToDOM() {
         return;
     }
     
-    // Wait for IndexedDB to be ready (max 2 seconds)
+    // Wait for IndexedDB to be ready (max 5 seconds)
     let waitCount = 0;
-    while (!db && waitCount < 20) {
+    while (!db && waitCount < 50) {
         await new Promise(r => setTimeout(r, 100));
         waitCount++;
+    }
+    
+    if (!db) {
+        console.warn('⚠️ IndexedDB not ready after 5 seconds. Using fallback images.');
+    } else {
+        console.log('✓ IndexedDB ready');
     }
     
     let addedCount = 0;
@@ -639,6 +645,7 @@ window.addEventListener('storage', (e) => {
 
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('========== PAGE INITIALIZATION START ==========');
     console.log('DOMContentLoaded: Starting page initialization');
     
     const modals = document.querySelectorAll('.modal');
@@ -651,22 +658,25 @@ document.addEventListener('DOMContentLoaded', async function() {
         await new Promise(resolve => setTimeout(resolve, 100));
         waitCount++;
     }
-    console.log('IndexedDB ready:', dbReady);
+    console.log('✓ IndexedDB ready:', dbReady);
     
     setLanguage(currentLang);
     setupLanguageButtons();
     
     // Reload from localStorage
-    products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
+    const storedData = localStorage.getItem('zonewear-products');
+    console.log('📦 Raw localStorage data:', storedData);
+    products = JSON.parse(storedData) || [];
     console.log('🔄 Reloaded products from localStorage:', products.length);
-    console.log('📦 Products:', products);
+    console.log('📦 Products array:', products);
     
     cleanProductsData();
     initializeDefaultProducts();
     
-    console.log('Ready to render:', products.length, 'products');
+    console.log('✅ Ready to render:', products.length, 'products');
     
     await loadProductsToDOM();
+    console.log('========== PAGE INITIALIZATION COMPLETE ==========');
     
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');

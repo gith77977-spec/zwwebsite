@@ -859,12 +859,26 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
+                    // Wait for IndexedDB to be ready before saving image
+                    let dbReady = false;
+                    let retries = 0;
+                    while (!db && retries < 50) {
+                        await new Promise(r => setTimeout(r, 100));
+                        retries++;
+                    }
+                    
+                    if (!db) {
+                        throw new Error('IndexedDB database not available after 5 seconds');
+                    }
+                    
+                    console.log('✅ IndexedDB ready, saving image...');
+                    
                     const imageBlob = new Blob([e.target.result], { type: imageFile.type });
                     const imageName = `product-${Date.now()}-${imageFile.name}`;
                     
                     console.log('💾 Saving image to IndexedDB:', imageName);
                     await saveImageToDb(imageBlob, imageName);
-                    console.log('✅ Image saved to IndexedDB');
+                    console.log('✅ Image saved to IndexedDB successfully');
                     
                     // Create product object with saved image
                     const product = {
@@ -938,7 +952,7 @@
                     setTimeout(() => {
                         console.log('🔗 Redirecting to products.html');
                         window.location.href = 'products.html';
-                    }, 500);
+                    }, 1000);
                 } catch (error) {
                     console.error('❌ Error in product submission:', error);
                     alert('Error saving product: ' + error.message);
