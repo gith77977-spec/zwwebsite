@@ -253,6 +253,13 @@ async function loadProductsToDOM() {
         return;
     }
     
+    // Wait for IndexedDB to be ready (max 2 seconds)
+    let waitCount = 0;
+    while (!db && waitCount < 20) {
+        await new Promise(r => setTimeout(r, 100));
+        waitCount++;
+    }
+    
     let addedCount = 0;
     for (const product of products) {
         try {
@@ -680,7 +687,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Reload from localStorage
     products = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-    console.log('Reloaded products from localStorage:', products.length);
+    console.log('🔄 Reloaded products from localStorage:', products.length);
+    console.log('📦 Products:', products);
     
     cleanProductsData();
     initializeDefaultProducts();
