@@ -240,7 +240,7 @@ async function loadProductsToDOM() {
                     <div class="product-top">
                         <div class="price-badge">${product.price.toLocaleString('ar-DZ')} DA</div>
                         <div class="product-image">
-                            <img src="${imageSrc}" alt="${product.name}" class="product-img" onerror="this.src='assets/images/zw-halfzip-white.png'">
+                            <img src="${imageSrc}" alt="${product.name}" class="product-img" loading="lazy" onerror="this.src='assets/images/zw-halfzip-white.png'">
                         </div>
                     </div>
                     <div class="product-content">
@@ -606,11 +606,15 @@ channel.onmessage = (event) => {
     }
 };
 
-// Fallback: Check localStorage every 2 seconds for updates
+// Fallback: Check localStorage every 1 second for updates (more frequent for cross-device sync)
 setInterval(() => {
     try {
         const savedProducts = JSON.parse(localStorage.getItem('zonewear-products')) || [];
-        if (savedProducts.length !== products.length) {
+        // Check both length and content to catch all changes
+        const hasChanges = savedProducts.length !== products.length || 
+                          savedProducts.some((p, i) => !products[i] || p.id !== products[i].id);
+        
+        if (hasChanges) {
             console.log('📦 localStorage changed, reloading products:', savedProducts.length, 'found');
             products = deduplicateProducts(savedProducts);
             loadProductsToDOM();
@@ -620,7 +624,7 @@ setInterval(() => {
     } catch (error) {
         console.error('❌ Error in polling interval:', error);
     }
-}, 2000);
+}, 1000);
 
 // Storage event listener (for updates from other tabs)
 window.addEventListener('storage', (e) => {
